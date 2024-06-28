@@ -1,6 +1,5 @@
 var Mechanics = (function() {
     var Mechanics = function() {
-        // Initialize properties
         this.outs = 0;
         this.score = 0;
         this.strikes = 0;
@@ -9,12 +8,14 @@ var Mechanics = (function() {
         this.onThird = false;
         this.onBase = 0;
         this.was = 0;
-        this.player1Pos = null;
-        this.player2Pos = null;
+        this.guiInstance = null;
+    };
+
+    Mechanics.prototype.gui = function(guiInstance) {
+        this.guiInstance = guiInstance;
     };
 
     Mechanics.prototype.swing = function() {
-        // Logic for swinging the bat
         console.log("Swinging the bat");
         var swung = Math.floor(Math.random() * 100);
         if (swung < 50) {
@@ -32,10 +33,10 @@ var Mechanics = (function() {
                 }
             }
         }
+        this.guiInstance.updateBillboard();
     };
 
     Mechanics.prototype.moveBatter = function() {
-        // Logic to move the batter
         if (this.onBase < 3) {
             this.onBase++;
         }
@@ -52,16 +53,16 @@ var Mechanics = (function() {
             this.onFirst = false;
         }
         this.onFirst = true;
+        this.guiInstance.checkBases();
     };
 
     Mechanics.prototype.gameOver = function() {
-        // Logic for game over
         console.log("Game Over! Final Score: " + this.score);
+        this.guiInstance.displayGameOver();
         this.reset();
     };
 
     Mechanics.prototype.reset = function() {
-        // Reset game state
         this.outs = 0;
         this.score = 0;
         this.strikes = 0;
