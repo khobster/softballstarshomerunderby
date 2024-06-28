@@ -3,24 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fast Pitch Home Run Derby</title>
-    <link rel="stylesheet" type="text/css" href="field.css">
-    <script type="text/javascript" src="team.js"></script>
-    <script type="text/javascript" src="mechanics.js"></script>
-    <script type="text/javascript" src="field.js"></script>
+    <title>Softball Home Run Derby</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+    <script src="main.js" defer></script>
 </head>
 <body>
-    <p>Instructions:</p>
-    <p>Click the pitcher's mound to throw a pitch and click the batter to swing.</p>
-    <p>See how many home runs you can hit before you have three outs!</p>
-    <div id="field"></div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            game1 = new Mechanics();
-            var rollOut = new Field('field', game1);
-            rollOut.render();
-            game1.gui(rollOut);
-        });
-    </script>
+    <h1>Softball Home Run Derby</h1>
+    <div id="game"></div>
 </body>
 </html>
