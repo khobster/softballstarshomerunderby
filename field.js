@@ -6,7 +6,7 @@ var Field = (function() {
         }
 
         this.reset = function() {
-            //reset to green
+            // Reset to green
         };
 
         this.checkBases = function() {
@@ -39,7 +39,7 @@ var Field = (function() {
             document.getElementById(was).classList.toggle('hit', false);
             document.getElementById(was).innerHTML = '';
             document.getElementById(is).classList.toggle('hit', true);
-            document.getElementById(is).innerHTML = 'B'
+            document.getElementById(is).innerHTML = 'B';
             game.was = is;
         };
 
@@ -56,13 +56,13 @@ var Field = (function() {
             game.resetBases();
             game.resetOutfield();
             setTimeout(function() {
-                document.getElementById(container).removeChild(endGame)
+                document.getElementById(container).removeChild(endGame);
             }, 2000);
         };
 
         this.render = function() {
             var diamond = document.createElement('table');
-            diamond.setAttribute('id', 'grounds')
+            diamond.setAttribute('id', 'grounds');
             box.appendChild(diamond);
             for (var row = 0; row < 7; row++) {
                 var rows = document.createElement('tr');
@@ -84,15 +84,28 @@ var Field = (function() {
                     rows.appendChild(cells);
                 }
             }
-            document.getElementById(29).onclick = function() { game.swing() };
-            document.getElementById(22).onclick = function() { game.resetOutfield() };
+
+            // Add pitcher image
+            var pitcherCell = document.getElementById(22);
+            var pitcherImage = new Image();
+            pitcherImage.src = 'src/assets/images/pitcher.png';
+            pitcherCell.appendChild(pitcherImage);
+
+            // Add batter image
+            var batterCell = document.getElementById(29);
+            var batterImage = new Image();
+            batterImage.src = 'src/assets/images/batter.png';
+            batterCell.appendChild(batterImage);
+
+            document.getElementById(29).onclick = function() { game.swing(); };
+            document.getElementById(22).onclick = function() { game.resetOutfield(); };
             var billboard = document.createElement('div');
             billboard.classList.toggle('billboard', true);
             billboard.setAttribute('id', 'billboard');
             billboard.innerHTML = "Score: " + game.score + "<br>" + 'Outs: ' + game.outs;
             document.getElementById('field').appendChild(billboard);
-        }
-    }
+        };
+    };
     return Field;
 })();
 
@@ -101,6 +114,6 @@ var doStuff = function() {
     var rollOut = new Field('field', game1);
     rollOut.render();
     game1.gui(rollOut);
-}
+};
 
 window.onload = doStuff;
