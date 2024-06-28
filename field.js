@@ -105,13 +105,13 @@ var Field = (function() {
             // Add pitcher image
             var pitcherCell = document.getElementById(22);
             var pitcherImage = new Image();
-            pitcherImage.src = 'src/assets/images/pitcher.png';
+            pitcherImage.src = 'pitcher.png';
             pitcherCell.appendChild(pitcherImage);
 
             // Add batter image
             var batterCell = document.getElementById(29);
             var batterImage = new Image();
-            batterImage.src = 'src/assets/images/batter.png';
+            batterImage.src = 'batter.png';
             batterCell.appendChild(batterImage);
 
             document.getElementById(29).onclick = function() {
