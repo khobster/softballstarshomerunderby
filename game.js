@@ -1,7 +1,7 @@
 const config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 524,
+    height: 600,
     parent: 'game-container',
     scene: {
         preload: preload,
@@ -29,15 +29,15 @@ let isSwinging = false;
 
 function preload() {
     // Load assets
-    this.load.image('field', 'field.png');
-    this.load.spritesheet('batter', 'batterspritesheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.spritesheet('pitcher', 'pitcherspritesheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.image('ball', 'ball.png');
+    this.load.image('field', 'path_to_your_field_image.png');
+    this.load.spritesheet('batter', 'path_to_your_batter_sprite_sheet.png', { frameWidth: 64, frameHeight: 68 });
+    this.load.spritesheet('pitcher', 'path_to_your_pitcher_sprite_sheet.png', { frameWidth: 64, frameHeight: 57 });
+    this.load.image('ball', 'path_to_your_ball_image.png');
 }
 
 function create() {
     // Add the field background
-    this.add.image(400, 300, 'field');  // Assuming the field image is centered
+    this.add.image(400, 262, 'field');  // Centered field image
 
     // Create animations
     this.anims.create({
@@ -55,9 +55,9 @@ function create() {
     });
 
     // Add the batter and pitcher sprites with correct positions and scaling
-    batter = this.physics.add.sprite(400, 500, 'batter').setScale(1).setOrigin(0.5, 0.5);
-    pitcher = this.physics.add.sprite(400, 150, 'pitcher').setScale(1).setOrigin(0.5, 0.5);
-    ball = this.physics.add.sprite(400, 200, 'ball').setScale(0.5);
+    batter = this.physics.add.sprite(400, 520, 'batter').setScale(1).setOrigin(0.5, 1);
+    pitcher = this.physics.add.sprite(400, 100, 'pitcher').setScale(1).setOrigin(0.5, 1);
+    ball = this.physics.add.sprite(400, 150, 'ball').setScale(1).setOrigin(0.5, 0.5);
 
     batter.anims.play('batter_swing');
     pitcher.anims.play('pitcher_throw');
@@ -78,7 +78,7 @@ function update() {
     ball.y += 2;
 
     if (ball.y > 600) {
-        ball.y = 200;
+        ball.y = 150;
         ball.x = Phaser.Math.Between(100, 700);
         outs += 1;
         if (outs >= 10) {
@@ -95,7 +95,7 @@ function update() {
 
 function hitBall(batter, ball) {
     score += 1;
-    ball.y = 200;
+    ball.y = 150;
     ball.x = Phaser.Math.Between(100, 700);
     console.log(`Score: ${score}, Outs: ${outs}`);
 }
