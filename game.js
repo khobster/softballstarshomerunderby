@@ -1,7 +1,7 @@
 const config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 600,
+    height: 524,
     parent: 'game-container',
     scene: {
         preload: preload,
@@ -19,13 +19,13 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let batter;
-let pitcher;
-let ball;
+let batter, pitcher, ball;
 let cursors;
 let score = 0;
 let outs = 0;
 let isSwinging = false;
+let pitchSpeed = 2;
+let pitchPosition;
 
 function preload() {
     // Load assets
@@ -65,37 +65,68 @@ function create() {
     cursors = this.input.keyboard.createCursorKeys();
 
     this.physics.add.collider(batter, ball, hitBall, null, this);
+
+    // Set initial pitch position and speed
+    resetPitch();
 }
 
 function update() {
+    // Move the ball (pitching logic)
+    ball.y += pitchSpeed;
+
+    // Check if the ball goes out of bounds (counts as an out)
+    if (ball.y > 600) {
+        ballOut();
+    }
+
+    // Detect swing (press space to swing)
     if (cursors.space.isDown && !isSwinging) {
         isSwinging = true;
         batter.anims.play('batter_swing');
-        // Implement logic to determine if the ball is hit
+        checkHit();
     }
 
-    // Update ball position and check for out conditions
-    ball.y += 2;
-
-    if (ball.y > 600) {
-        ball.y = 200;
-        ball.x = Phaser.Math.Between(100, 700);
-        outs += 1;
-        if (outs >= 10) {
-            // End game logic
-        }
-    }
-
-    if (isSwinging) {
-        // Check if ball is hit
-        // Update score
+    if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
         isSwinging = false;
     }
 }
 
-function hitBall(batter, ball) {
+function checkHit() {
+    // Simple hit detection: Check if the ball is within a hit range
+    if (ball.y > 450 && ball.y < 550 && Math.abs(ball.x - batter.x) < 50) {
+        hitBall();
+    } else {
+        console.log('Missed!');
+    }
+}
+
+function hitBall() {
     score += 1;
+    console.log(`Home Run! Score: ${score}, Outs: ${outs}`);
+    resetPitch();
+}
+
+function ballOut() {
+    outs += 1;
+    console.log(`Out! Score: ${score}, Outs: ${outs}`);
+    if (outs >= 10) {
+        console.log('Game Over!');
+        resetGame();
+    } else {
+        resetPitch();
+    }
+}
+
+function resetPitch() {
     ball.y = 200;
     ball.x = Phaser.Math.Between(100, 700);
-    console.log(`Score: ${score}, Outs: ${outs}`);
+    pitchSpeed = Phaser.Math.Between(2, 5);
+    pitchPosition = Phaser.Math.Between(100, 700);
+    ball.x = pitchPosition;
+}
+
+function resetGame() {
+    score = 0;
+    outs = 0;
+    resetPitch();
 }
