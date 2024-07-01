@@ -55,9 +55,9 @@ function create() {
     });
 
     // Add the batter and pitcher sprites with correct positions and scaling
-    batter = this.physics.add.sprite(350, 200, 'batter').setScale(1.8).setOrigin(0.5, 1);
-    pitcher = this.physics.add.sprite(400, 100, 'pitcher').setScale(1.8).setOrigin(0.5, 1);
-    ball = this.physics.add.sprite(400, 200, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
+    batter = this.physics.add.sprite(350, 350, 'batter').setScale(1.8).setOrigin(0.5, 1);
+    pitcher = this.physics.add.sprite(400, 500, 'pitcher').setScale(1.8).setOrigin(0.5, 1);
+    ball = this.physics.add.sprite(400, 500, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
 
     batter.anims.play('batter_swing');
     pitcher.anims.play('pitcher_throw');
