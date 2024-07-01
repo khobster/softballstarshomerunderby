@@ -29,10 +29,10 @@ let isSwinging = false;
 
 function preload() {
     // Load assets
-    this.load.image('field', 'path_to_your_field_image.png');
-    this.load.spritesheet('batter', 'path_to_your_batter_sprite_sheet.png', { frameWidth: 64, frameHeight: 68 });
-    this.load.spritesheet('pitcher', 'path_to_your_pitcher_sprite_sheet.png', { frameWidth: 64, frameHeight: 57 });
-    this.load.image('ball', 'path_to_your_ball_image.png');
+    this.load.image('field', 'field.png');
+    this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
+    this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
+    this.load.image('ball', 'smallsoftball.png');
 }
 
 function create() {
