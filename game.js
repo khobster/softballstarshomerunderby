@@ -28,12 +28,18 @@ let outs = 0;
 let isSwinging = false;
 
 function preload() {
+    // Load assets
+    this.load.image('field', 'field.png');
     this.load.spritesheet('batter', 'batterspritesheet.png', { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('pitcher', 'pitcherspritesheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.image('ball', 'path_to_your_ball_image.png');
+    this.load.image('ball', 'softball.png');
 }
 
 function create() {
+    // Add the field background
+    this.add.image(400, 300, 'field');  // Assuming the field image is centered
+
+    // Create animations
     this.anims.create({
         key: 'batter_swing',
         frames: this.anims.generateFrameNumbers('batter', { start: 0, end: 5 }),
@@ -48,6 +54,7 @@ function create() {
         repeat: -1
     });
 
+    // Add the batter and pitcher sprites
     batter = this.physics.add.sprite(400, 500, 'batter').setScale(2);
     pitcher = this.physics.add.sprite(400, 100, 'pitcher').setScale(2);
     ball = this.physics.add.sprite(400, 200, 'ball');
