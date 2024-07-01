@@ -28,8 +28,8 @@ let outs = 0;
 let isSwinging = false;
 
 function preload() {
-    this.load.spritesheet('batter', 'path_to_your_batter_sprite_sheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.spritesheet('pitcher', 'path_to_your_pitcher_sprite_sheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('batter', 'batterspritesheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('pitcher', 'pitcherspritesheet.png', { frameWidth: 64, frameHeight: 64 });
     this.load.image('ball', 'path_to_your_ball_image.png');
 }
 
