@@ -1,7 +1,7 @@
 const config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 600,
+    height: 524,
     parent: 'game-container',
     scene: {
         preload: preload,
@@ -29,10 +29,10 @@ let isSwinging = false;
 
 function preload() {
     // Load assets
-    this.load.image('field', 'path_to_your_field_image.png');
-    this.load.spritesheet('batter', 'path_to_your_batter_sprite_sheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.spritesheet('pitcher', 'path_to_your_pitcher_sprite_sheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.image('ball', 'path_to_your_ball_image.png');
+    this.load.image('field', 'field.png');
+    this.load.spritesheet('batter', 'batterspritesheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('pitcher', 'pitcherspritesheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.image('ball', 'ball.png');
 }
 
 function create() {
