@@ -37,11 +37,24 @@ function preload() {
 function create() {
   this.add.image(400, 262, 'field');
 
-  // Create animations (same as before)
-  // ...
+  this.anims.create({
+        key: 'batter_swing',
+        frames: this.anims.generateFrameNumbers('batter', { start: 0, end: 5 }),
+        frameRate: 10,
+        repeat: 0
+    });
 
-  // Add sprites (same as before)
-  // ...
+    this.anims.create({
+        key: 'pitcher_throw',
+        frames: this.anims.generateFrameNumbers('pitcher', { start: 0, end: 5 }),
+        frameRate: 10,
+        repeat: 0
+    });
+
+    batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
+    pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
+    ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
+    ball.body.allowGravity = false;
 
   cursors = this.input.keyboard.createCursorKeys();
 
