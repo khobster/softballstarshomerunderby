@@ -12,7 +12,7 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 0 },
-            debug: false
+            debug: true
         }
     }
 };
@@ -24,7 +24,6 @@ let score = 0;
 let outs = 0;
 let isSwinging = false;
 let pitchInProgress = false;
-let pitchSpeed = 200;
 
 function preload() {
     this.load.image('field', 'field.png');
@@ -83,7 +82,7 @@ function update() {
     }
 
     if (pitchInProgress) {
-        ball.y += 5; 
+        ball.y += 5; // Adjust speed for realistic pitching
         if (ball.y > 550) {
             pitchInProgress = false;
             ball.setVelocity(0);
@@ -97,6 +96,7 @@ function startPitch() {
 
     pitchInProgress = true;
     ball.setPosition(pitcher.x, pitcher.y);
+    ball.setActive(true).setVisible(true);
 
     pitcher.anims.play('pitcher_throw');
     pitcher.once('animationcomplete', () => {
