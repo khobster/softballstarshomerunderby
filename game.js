@@ -88,6 +88,17 @@ function update() {
         batter.setFrame(0);  // Reset to initial frame
         checkHit();
     }
+
+    if (pitchInProgress) {
+        ball.y += 5;  // Adjust the speed and direction as needed
+        if (ball.y > 410) {
+            pitchInProgress = false;
+            ball.setVelocity(0); // Stop the ball
+            if (!isSwinging) {
+                ballOut();
+            }
+        }
+    }
 }
 
 function startPitch() {
@@ -98,7 +109,8 @@ function startPitch() {
 
     // Wait for the pitcher's animation to complete before pitching the ball
     pitcher.on('animationcomplete', () => {
-        pitchBall();
+        ball.setPosition(pitcher.x, pitcher.y);
+        pitchInProgress = true;
     });
 }
 
@@ -163,5 +175,6 @@ function resetGame() {
 }
 
 function startPitchTimer() {
+    clearInterval(pitchTimer); // Clear any existing timer
     pitchTimer = setInterval(startPitch, 3000); // Pitch every 3 seconds
 }
