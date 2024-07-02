@@ -28,7 +28,6 @@ let swingCompleted = true;
 let pitchTimer;
 
 function preload() {
-    // Load assets
     this.load.image('field', 'field.png');
     this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
     this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
@@ -36,10 +35,8 @@ function preload() {
 }
 
 function create() {
-    // Add the field background
-    this.add.image(400, 262, 'field');  // Centered field image
+    this.add.image(400, 262, 'field'); 
 
-    // Create animations
     this.anims.create({
         key: 'batter_swing',
         frames: this.anims.generateFrameNumbers('batter', { start: 0, end: 5 }),
@@ -54,7 +51,6 @@ function create() {
         repeat: 0
     });
 
-    // Add the batter and pitcher sprites with correct positions and scaling
     batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
     pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
     ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
@@ -63,37 +59,33 @@ function create() {
 
     this.physics.add.collider(batter, ball, hitBall, null, this);
 
-    // Score and outs display
     scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
     outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
-    // Set initial pitch position and speed
     resetPitch();
     startPitchTimer();
 }
 
 function update() {
-    // Detect swing (press space to swing)
     if (cursors.space.isDown && !isSwinging && swingCompleted) {
         isSwinging = true;
         swingCompleted = false;
         batter.anims.play('batter_swing');
     }
 
-    // Reset swing animation
     if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
         isSwinging = false;
         swingCompleted = true;
         batter.anims.stop();
-        batter.setFrame(0);  // Reset to initial frame
+        batter.setFrame(0);
         checkHit();
     }
 
     if (pitchInProgress) {
-        ball.y += 5;  // Adjust the speed and direction as needed
+        ball.y += 5; 
         if (ball.y > 410) {
             pitchInProgress = false;
-            ball.setVelocity(0); // Stop the ball
+            ball.setVelocity(0); 
             if (!isSwinging) {
                 ballOut();
             }
@@ -105,23 +97,20 @@ function startPitch() {
     if (pitchInProgress) return;
     pitchInProgress = true;
 
-    pitcher.anims.play('pitcher_throw', true); // Play the throw animation
+    pitcher.anims.play('pitcher_throw', true);
 
-    // Wait for the pitcher's animation to complete before pitching the ball
     pitcher.on('animationcomplete', () => {
-        ball.setPosition(pitcher.x, pitcher.y);
-        pitchInProgress = true;
+        pitchBall();
     });
 }
 
 function pitchBall() {
-    pitchSpeed = Phaser.Math.Between(2000, 3000);  // Duration of the pitch in milliseconds
+    pitchSpeed = Phaser.Math.Between(2000, 3000); 
 
-    // Ensure ball moves towards the batter
-    this.tweens.add({
+    game.scene.scenes[0].tweens.add({
         targets: ball,
         x: batter.x,
-        y: 410,  // Y-coordinate of the batter
+        y: 410,  
         ease: 'Linear',
         duration: pitchSpeed,
         onComplete: () => {
@@ -132,8 +121,7 @@ function pitchBall() {
 }
 
 function checkHit() {
-    // Simple hit detection: Check if the ball is within a hit range
-    if (ball.y > 450 && ball.y < 550 && Math.abs(ball.x - batter.x) < 50) {
+    if (ball.y > 400 && ball.y < 450 && Math.abs(ball.x - batter.x) < 50) {
         hitBall();
     } else {
         console.log('Missed!');
@@ -175,6 +163,6 @@ function resetGame() {
 }
 
 function startPitchTimer() {
-    clearInterval(pitchTimer); // Clear any existing timer
-    pitchTimer = setInterval(startPitch, 3000); // Pitch every 3 seconds
+    clearInterval(pitchTimer);
+    pitchTimer = setInterval(startPitch, 3000);
 }
