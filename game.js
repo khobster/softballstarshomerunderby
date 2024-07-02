@@ -26,7 +26,6 @@ let outs = 0;
 let isSwinging = false;
 let pitchSpeed = 2;
 let pitchInProgress = false;
-let swingCompleted = true;
 
 function preload() {
     // Load assets
@@ -83,14 +82,14 @@ function update() {
     if (cursors.space.isDown && !isSwinging) {
         isSwinging = true;
         batter.anims.play('batter_swing');
-    } else if (cursors.space.isUp && isSwinging) {
+        checkHit();
+    }
+
+    // Reset swing animation
+    if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
         isSwinging = false;
         batter.anims.stop();
         batter.setFrame(0);  // Reset to initial frame
-    }
-
-    if (isSwinging) {
-        checkHit();
     }
 }
 
@@ -129,7 +128,7 @@ function resetPitch() {
     pitcher.anims.play('pitcher_throw');
 
     // Ensure ball moves towards the batter
-    this.tweens.add({
+    game.scene.scenes[0].tweens.add({
         targets: ball,
         y: 550,  // Y-coordinate of the batter
         ease: 'Linear',
