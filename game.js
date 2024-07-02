@@ -25,6 +25,7 @@ let outs = 0;
 let isSwinging = false;
 let pitchInProgress = false;
 let swingCompleted = true;
+let pitchTimer;
 
 function preload() {
     // Load assets
@@ -68,7 +69,7 @@ function create() {
 
     // Set initial pitch position and speed
     resetPitch();
-    startPitchingTimer();
+    startPitchTimer();
 }
 
 function update() {
@@ -87,29 +88,12 @@ function update() {
         batter.setFrame(0);  // Reset to initial frame
         checkHit();
     }
-
-    // Update ball position
-    if (pitchInProgress) {
-        ball.y += pitchSpeed;
-        if (ball.y >= 550) {
-            pitchInProgress = false;
-            ballOut();
-        }
-    }
-}
-
-function startPitchingTimer() {
-    this.time.addEvent({
-        delay: 5000,  // Time between pitches
-        callback: () => {
-            startPitch();
-        },
-        callbackScope: this,
-        loop: true
-    });
 }
 
 function startPitch() {
+    if (pitchInProgress) return;
+    pitchInProgress = true;
+
     pitcher.anims.play('pitcher_throw', true); // Play the throw animation
 
     // Wait for the pitcher's animation to complete before pitching the ball
@@ -119,16 +103,15 @@ function startPitch() {
 }
 
 function pitchBall() {
-    pitchInProgress = true;
-    pitchSpeed = 2; // Slowed down for testing
+    pitchSpeed = Phaser.Math.Between(2000, 3000);  // Duration of the pitch in milliseconds
 
     // Ensure ball moves towards the batter
-    ball.setPosition(pitcher.x, pitcher.y - 30); // Start the ball at the pitcher's hand
-    game.scene.scenes[0].tweens.add({
+    this.tweens.add({
         targets: ball,
-        y: 550,  // Y-coordinate of the batter
+        x: batter.x,
+        y: 410,  // Y-coordinate of the batter
         ease: 'Linear',
-        duration: 1000 / pitchSpeed,  // Duration inversely proportional to pitch speed
+        duration: pitchSpeed,
         onComplete: () => {
             pitchInProgress = false;
             if (!isSwinging) ballOut();
@@ -167,7 +150,7 @@ function ballOut() {
 }
 
 function resetPitch() {
-    ball.setPosition(pitcher.x, pitcher.y - 30);
+    ball.setPosition(pitcher.x, pitcher.y);
     pitchInProgress = false;
 }
 
@@ -176,4 +159,9 @@ function resetGame() {
     outs = 0;
     scoreText.setText('Home Runs: 0');
     outsText.setText('Outs: 0');
+    startPitchTimer();
+}
+
+function startPitchTimer() {
+    pitchTimer = setInterval(startPitch, 3000); // Pitch every 3 seconds
 }
