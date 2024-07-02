@@ -19,13 +19,12 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let batter, pitcher, ball, cursors, scoreText, outsText;
+let batter, pitcher, ball, scoreText, outsText, startButton;
 let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
-let pitchInProgress = false;
 let hitRegistered = false;
-let outRegistered = false;
+let pitchInProgress = false;
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -60,46 +59,56 @@ function create() {
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
-  cursors = this.input.keyboard.createCursorKeys();
-
   this.physics.add.overlap(batter, ball, checkHit, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
-  this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
+  // Start Button
+  startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
+    .setOrigin(0.5)
+    .setInteractive()
+    .on('pointerdown', startGame, this);
+
+  // Add event listener for mouse click
+  this.input.on('pointerdown', () => {
+    if (gameState === 'pitching') {
+      gameState = 'swinging';
+      batter.anims.play('batter_swing');
+    }
+  });
 }
 
 function update() {
-  console.log("Game State:", gameState);
-  console.log("Pitch In Progress:", pitchInProgress);
-  console.log("Ball Position:", ball.x, ball.y);
-
-  if (cursors.space.isDown && gameState === 'waitingForPitch') {
-    gameState = 'swinging';
-    batter.anims.play('batter_swing');
-  }
+  console.log('Game State:', gameState);
+  console.log('Pitch In Progress:', pitchInProgress);
+  console.log('Ball Position:', ball.x, ball.y);
 
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
     batter.setFrame(0);
     gameState = 'waitingForPitch';
+    checkHit();  // Check for hit after the swing completes
   }
 
-  if (pitchInProgress) {
-    if (ball.y > 550) { // Ball past batter
-      ballOut();
-    }
+  if (pitchInProgress && ball.y > 550) {
+    ballOut();
   }
+}
+
+function startGame() {
+  startButton.setVisible(false); // Hide the start button
+  this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
 }
 
 function startPitch() {
   if (gameState !== 'waitingForPitch') return;
 
   gameState = 'pitching';
-  outRegistered = false; 
+  pitchInProgress = true;
+  hitRegistered = false;
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
-    pitchBall();
+    pitchBall.call(this);
   });
 }
 
@@ -108,18 +117,17 @@ function pitchBall() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
-  const pitchSpeed = 300; // Adjusted speed (pixels per second)
-  const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
-  this.physics.velocityFromAngle(90 + pitchAngle, pitchSpeed, ball.body.velocity); // Adjust angle
+  const pitchSpeed = 200; // Adjust speed (pixels per second)
+  const pitchAngle = Phaser.Math.Between(-10, 10); // Slight angle variation
+  this.physics.velocityFromRotation(Phaser.Math.DegToRad(pitchAngle), pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
-  console.log("Pitch Ball Velocity:", ball.body.velocity);
 }
 
 function checkHit() {
   if (gameState === 'swinging' && this.physics.overlap(batter, ball) && !hitRegistered) {
     hitRegistered = true;
-    hitBall();
+    hitBall.call(this);
   }
 }
 
@@ -127,27 +135,27 @@ function hitBall() {
   score += 1;
   scoreText.setText(`Home Runs: ${score}`);
   ball.setActive(false).setVisible(false);
-  this.time.delayedCall(500, resetPitch, [], this); // Ensure context is correct
+  this.time.delayedCall(500, resetPitch, [], this);
 }
 
 function ballOut() {
-  if (!outRegistered) { // Ensure ballOut is called only once per pitch
-    outs += 1;
-    outsText.setText(`Outs: ${outs}`);
-    if (outs >= 5) {
-      this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
-      this.time.delayedCall(2000, resetGame, [], this);
-    } else {
-      this.time.delayedCall(500, resetPitch, [], this);
-    }
-    outRegistered = true;
+  if (!pitchInProgress) return;
+
+  outs += 1;
+  outsText.setText(`Outs: ${outs}`);
+  if (outs >= 5) {
+    this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
+    this.time.delayedCall(2000, resetGame, [], this);
+  } else {
+    this.time.delayedCall(500, resetPitch, [], this); 
   }
   pitchInProgress = false;
 }
 
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
-  ball.setVelocity(0); 
+  ball.setVelocity(0);
+  pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
 
@@ -156,5 +164,5 @@ function resetGame() {
   outs = 0;
   scoreText.setText('Home Runs: 0');
   outsText.setText('Outs: 0');
-  startPitch();
+  startGame();
 }
