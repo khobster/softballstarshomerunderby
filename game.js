@@ -117,7 +117,7 @@ function pitchBall() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
-  const pitchSpeed = 200; // Adjust speed (pixels per second)
+  const pitchSpeed = 300; // Adjust speed (pixels per second)
   const pitchAngle = Phaser.Math.Between(-10, 10); // Slight angle variation
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(pitchAngle), pitchSpeed, ball.body.velocity);
 
@@ -127,7 +127,7 @@ function pitchBall() {
 function checkHit() {
   if (gameState === 'swinging' && this.physics.overlap(batter, ball) && !hitRegistered) {
     hitRegistered = true;
-    hitBall();
+    hitBall.call(this);
   }
 }
 
