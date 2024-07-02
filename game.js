@@ -11,8 +11,8 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 }, // No gravity for this game
-      debug: false 
+      gravity: { y: 0 },
+      debug: false
     }
   }
 };
@@ -20,27 +20,33 @@ const config = {
 const game = new Phaser.Game(config);
 
 let batter, pitcher, ball, cursors, scoreText, outsText;
-let gameState = 'waitingForPitch'; // Initial game state
+let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
+let hitRegistered = false;
+let outRegistered = false;
 
 function preload() {
   this.load.image('field', 'field.png');
   this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
   this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
   this.load.image('ball', 'smallsoftball.png');
+
+  this.load.on('complete', () => { 
+    console.log('Assets loaded successfully!');
+  });
 }
 
 function create() {
   this.add.image(400, 262, 'field'); 
 
-  // Create animations (same as before)
-  this.anims.create({ 
+  this.anims.create({
     key: 'batter_swing',
     frames: this.anims.generateFrameNumbers('batter', { start: 0, end: 5 }),
     frameRate: 10,
     repeat: 0
   });
+
   this.anims.create({
     key: 'pitcher_throw',
     frames: this.anims.generateFrameNumbers('pitcher', { start: 0, end: 5 }),
@@ -55,12 +61,16 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
 
-  this.physics.add.overlap(batter, ball, checkHit, null, this); // Use overlap for hit detection
+  this.physics.add.overlap(batter, ball, checkHit, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
-  this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
+  // Start Button
+  const startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
+    .setOrigin(0.5)
+    .setInteractive()
+    .on('pointerdown', startGame, this);
 }
 
 function update() {
@@ -79,10 +89,16 @@ function update() {
   }
 }
 
+function startGame() {
+  this.children.removeAll(); // Remove the start button
+  this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
+}
+
 function startPitch() {
   if (gameState !== 'waitingForPitch') return;
 
   gameState = 'pitching';
+  outRegistered = false; 
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
     pitchBall();
@@ -92,27 +108,18 @@ function startPitch() {
 function pitchBall() {
   ball.setActive(true).setVisible(true);
   ball.setPosition(pitcher.x, pitcher.y);
+  ball.setVelocity(0);
 
-  // Tween for ball movement with realistic arc
-  this.tweens.add({
-    targets: ball,
-    x: batter.x,
-    y: batter.y - 50, // Adjust for bat height
-    ease: 'Cubic.Out',
-    duration: 500,  
-    onComplete: () => {
-      if (gameState !== 'hit') {
-        gameState = 'waitingForPitch';
-        ballOut();
-      }
-    }
-  });
+  const pitchSpeed = 500; // Adjusted speed (pixels per second)
+  const pitchAngle = Phaser.Math.Between(-15, 15); // Slight angle variation
+  this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity);
+
   pitchInProgress = true;
 }
 
 function checkHit() {
-  if (gameState === 'swinging' && this.physics.overlap(batter, ball)) {
-    gameState = 'hit';
+  if (gameState === 'swinging' && this.physics.overlap(batter, ball) && !hitRegistered) {
+    hitRegistered = true;
     hitBall();
   }
 }
@@ -125,6 +132,7 @@ function hitBall() {
 }
 
 function ballOut() {
+  outRegistered = true;
   outs += 1;
   outsText.setText(`Outs: ${outs}`);
   if (outs >= 5) {
@@ -133,12 +141,12 @@ function ballOut() {
   } else {
     this.time.delayedCall(500, resetPitch, [], this); 
   }
-  pitchInProgress = false; // Reset pitch flag
+  pitchInProgress = false;
 }
 
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
-  ball.setVelocity(0); // Make sure to reset velocity
+  ball.setVelocity(0); 
   gameState = 'waitingForPitch';
 }
 
