@@ -91,6 +91,15 @@ function update() {
         batter.setFrame(0);  // Reset to initial frame
         checkHit();
     }
+
+    // Update ball position
+    if (pitchInProgress) {
+        ball.y += pitchSpeed;
+        if (ball.y >= 550) {
+            pitchInProgress = false;
+            ballOut();
+        }
+    }
 }
 
 function startPitch() {
@@ -104,14 +113,15 @@ function startPitch() {
 }
 
 function pitchBall() {
+    pitchInProgress = true;
     pitchSpeed = Phaser.Math.Between(2, 5);
 
     // Ensure ball moves towards the batter
+    ball.setPosition(pitcher.x, pitcher.y - 30); // Start the ball at the pitcher's hand
     game.scene.scenes[0].tweens.add({
         targets: ball,
-        x: batter.x,
         y: 550,  // Y-coordinate of the batter
-        ease: 'Cubic.Out',
+        ease: 'Linear',
         duration: 1000 / pitchSpeed,  // Duration inversely proportional to pitch speed
         onComplete: () => {
             pitchInProgress = false;
@@ -152,7 +162,7 @@ function ballOut() {
 }
 
 function resetPitch() {
-    ball.setPosition(pitcher.x, pitcher.y);
+    ball.setPosition(pitcher.x, pitcher.y - 30);
     pitchInProgress = false;
 }
 
