@@ -82,7 +82,6 @@ function update() {
     if (cursors.space.isDown && !isSwinging) {
         isSwinging = true;
         batter.anims.play('batter_swing');
-        checkHit();
     }
 
     // Reset swing animation
@@ -90,6 +89,7 @@ function update() {
         isSwinging = false;
         batter.anims.stop();
         batter.setFrame(0);  // Reset to initial frame
+        checkHit();
     }
 }
 
@@ -99,6 +99,7 @@ function checkHit() {
         hitBall();
     } else {
         console.log('Missed!');
+        resetPitch();
     }
 }
 
@@ -135,6 +136,8 @@ function resetPitch() {
         duration: 2000 / pitchSpeed,  // Duration inversely proportional to pitch speed
         onComplete: () => {
             pitchInProgress = false;
+            // Reset ball position for next pitch
+            ball.setPosition(pitcher.x, pitcher.y);
         }
     });
 }
