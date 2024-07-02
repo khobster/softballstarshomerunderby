@@ -53,7 +53,7 @@ function create() {
     batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
     pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
     ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
-    ball.body.allowGravity = false; // Ensure no gravity affects the ball
+    ball.body.allowGravity = false;
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -83,7 +83,7 @@ function update() {
     }
 
     if (pitchInProgress) {
-        ball.y += 5; // Adjust speed for realistic pitching
+        ball.y += 5; 
         if (ball.y > 550) {
             pitchInProgress = false;
             ball.setVelocity(0);
@@ -105,19 +105,19 @@ function startPitch() {
 }
 
 function pitchBall() {
-    ball.setPosition(pitcher.x, pitcher.y); // Reset ball position
-    ball.setActive(true).setVisible(true); // Make ball visible again
-  
-    pitchSpeed = Phaser.Math.GetSpeed(500, 1); // Adjust speed as needed
-    let pitchAngle = Phaser.Math.Between(-15, 15); // Slight angle variation
-    this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity); // Set velocity
+    ball.setPosition(pitcher.x, pitcher.y);
+    ball.setActive(true).setVisible(true);
+
+    const pitchSpeed = Phaser.Math.GetSpeed(500, 1);
+    const pitchAngle = Phaser.Math.Between(-15, 15);
+    this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity);
 }
 
 function checkHit() {
     if (this.physics.overlap(batter, ball)) {
         hitBall();
     } else {
-        resetPitch(); 
+        resetPitch();
     }
 }
 
@@ -125,9 +125,9 @@ function hitBall() {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
     console.log(`Home Run! Score: ${score}, Outs: ${outs}`);
-
-    ball.setActive(false).setVisible(false); // Remove ball temporarily
-    this.time.delayedCall(500, resetPitch, [], this); // Reset pitch after a delay
+    
+    ball.setActive(false).setVisible(false);
+    this.time.delayedCall(500, resetPitch, [], this);
 }
 
 function ballOut() {
