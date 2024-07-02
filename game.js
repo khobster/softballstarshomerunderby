@@ -69,25 +69,22 @@ function create() {
 function update() {
     if (cursors.space.isDown && !isSwinging && swingCompleted) {
         isSwinging = true;
-        swingCompleted = false;
         batter.anims.play('batter_swing');
     }
 
-    if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
+    if (isSwinging && batter.anims.getProgress() === 1) {
         isSwinging = false;
-        swingCompleted = true;
-        batter.anims.stop();
         batter.setFrame(0);
         checkHit();
     }
 
     if (pitchInProgress) {
         ball.y += 5; 
-        if (ball.y > 410) {
+        if (ball.y > 410) { 
             pitchInProgress = false;
-            ball.setVelocity(0); 
+            ball.setVelocity(0);
             if (!isSwinging) {
-                ballOut();
+                ballOut(); 
             }
         }
     }
@@ -95,53 +92,41 @@ function update() {
 
 function startPitch() {
     if (pitchInProgress) return;
-    pitchInProgress = true;
 
-    pitcher.anims.play('pitcher_throw', true);
-
-    pitcher.on('animationcomplete', () => {
+    pitcher.anims.play('pitcher_throw');
+    pitcher.once('animationcomplete', () => {
         pitchBall();
     });
 }
 
 function pitchBall() {
-    pitchSpeed = Phaser.Math.Between(2000, 3000); 
+    ball.setPosition(pitcher.x, pitcher.y); 
 
-    game.scene.scenes[0].tweens.add({
-        targets: ball,
-        x: batter.x,
-        y: 410,  
-        ease: 'Linear',
-        duration: pitchSpeed,
-        onComplete: () => {
-            pitchInProgress = false;
-            if (!isSwinging) ballOut();
-        }
-    });
+    let pitchSpeed = Phaser.Math.Between(2000, 3000);
+    let pitchAngle = Phaser.Math.Between(-10, 10); 
+
+    this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity);
+    pitchInProgress = true; 
 }
 
 function checkHit() {
-    if (ball.y > 400 && ball.y < 450 && Math.abs(ball.x - batter.x) < 50) {
+    if (this.physics.overlap(batter, ball)) {
         hitBall();
     } else {
-        console.log('Missed!');
-        resetPitch();
+        resetPitch(); 
     }
 }
 
 function hitBall() {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
-    console.log(`Home Run! Score: ${score}, Outs: ${outs}`);
     resetPitch();
 }
 
 function ballOut() {
     outs += 1;
     outsText.setText(`Outs: ${outs}`);
-    console.log(`Out! Score: ${score}, Outs: ${outs}`);
     if (outs >= 5) {
-        console.log('Game Over!');
         this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
         resetGame();
     } else {
@@ -151,6 +136,7 @@ function ballOut() {
 
 function resetPitch() {
     ball.setPosition(pitcher.x, pitcher.y);
+    ball.body.velocity.set(0);
     pitchInProgress = false;
 }
 
