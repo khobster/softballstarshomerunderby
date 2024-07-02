@@ -131,8 +131,13 @@ function checkHit() {
 function hitBall() {
   score += 1;
   scoreText.setText(`Home Runs: ${score}`);
-  ball.setActive(false).setVisible(false);
-  this.time.delayedCall(500, resetPitch, [], this);
+  ball.setActive(true).setVisible(true); // Keep the ball visible to show it being hit
+
+  const hitSpeed = 300; // Speed of the ball after being hit
+  const hitAngle = Phaser.Math.Between(-45, 45); // Angle variation for hitting
+  this.physics.velocityFromRotation(Phaser.Math.DegToRad(hitAngle), hitSpeed, ball.body.velocity);
+
+  this.time.delayedCall(2000, resetPitch, [], this); // Reset pitch after 2 seconds
 }
 
 function ballOut() {
