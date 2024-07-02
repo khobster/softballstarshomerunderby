@@ -19,12 +19,10 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let batter, pitcher, ball;
-let cursors;
+let batter, pitcher, ball, cursors, pitchButton, scoreText, outsText;
 let score = 0;
 let outs = 0;
 let isSwinging = false;
-let pitchSpeed = 2;
 let pitchInProgress = false;
 let swingCompleted = true;
 
@@ -64,21 +62,20 @@ function create() {
 
     this.physics.add.collider(batter, ball, hitBall, null, this);
 
+    // Pitch button
+    pitchButton = this.add.text(650, 480, 'Pitch', { fontSize: '24px', fill: '#fff' })
+        .setInteractive()
+        .on('pointerdown', startPitch);
+
+    // Score and outs display
+    scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
+    outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
+
     // Set initial pitch position and speed
     resetPitch();
 }
 
 function update() {
-    // Move the ball (pitching logic)
-    if (pitchInProgress) {
-        ball.y += pitchSpeed;
-
-        // Check if the ball goes out of bounds (counts as an out)
-        if (ball.y > 600) {
-            ballOut();
-        }
-    }
-
     // Detect swing (press space to swing)
     if (cursors.space.isDown && !isSwinging && swingCompleted) {
         isSwinging = true;
@@ -96,6 +93,34 @@ function update() {
     }
 }
 
+function startPitch() {
+    pitcher.anims.play('pitcher_throw', true); // Play the throw animation
+    pitchButton.disableInteractive(); // Disable the button during the pitch
+
+    // Wait for the pitcher's animation to complete before pitching the ball
+    pitcher.on('animationcomplete', () => {
+        pitchBall();
+    });
+}
+
+function pitchBall() {
+    pitchSpeed = Phaser.Math.Between(2, 5);
+
+    // Ensure ball moves towards the batter
+    game.scene.scenes[0].tweens.add({
+        targets: ball,
+        x: batter.x,
+        y: 550,  // Y-coordinate of the batter
+        ease: 'Cubic.Out',
+        duration: 1000 / pitchSpeed,  // Duration inversely proportional to pitch speed
+        onComplete: () => {
+            pitchInProgress = false;
+            if (!isSwinging) ballOut();
+            pitchButton.setInteractive(); // Re-enable the button
+        }
+    });
+}
+
 function checkHit() {
     // Simple hit detection: Check if the ball is within a hit range
     if (ball.y > 450 && ball.y < 550 && Math.abs(ball.x - batter.x) < 50) {
@@ -108,15 +133,18 @@ function checkHit() {
 
 function hitBall() {
     score += 1;
+    scoreText.setText(`Home Runs: ${score}`);
     console.log(`Home Run! Score: ${score}, Outs: ${outs}`);
     resetPitch();
 }
 
 function ballOut() {
     outs += 1;
+    outsText.setText(`Outs: ${outs}`);
     console.log(`Out! Score: ${score}, Outs: ${outs}`);
-    if (outs >= 10) {
+    if (outs >= 5) {
         console.log('Game Over!');
+        this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
         resetGame();
     } else {
         resetPitch();
@@ -125,26 +153,13 @@ function ballOut() {
 
 function resetPitch() {
     ball.setPosition(pitcher.x, pitcher.y);
-    pitchSpeed = Phaser.Math.Between(2, 5);
-    pitchInProgress = true;
-
-    // Play pitcher throw animation
-    pitcher.anims.play('pitcher_throw');
-
-    // Ensure ball moves towards the batter
-    game.scene.scenes[0].tweens.add({
-        targets: ball,
-        y: 550,  // Y-coordinate of the batter
-        ease: 'Linear',
-        duration: 2000 / pitchSpeed,  // Duration inversely proportional to pitch speed
-        onComplete: () => {
-            pitchInProgress = false;
-        }
-    });
+    pitchInProgress = false;
 }
 
 function resetGame() {
     score = 0;
     outs = 0;
-    resetPitch();
+    scoreText.setText('Home Runs: 0');
+    outsText.setText('Outs: 0');
+    pitchButton.setInteractive(); // Re-enable the button
 }
