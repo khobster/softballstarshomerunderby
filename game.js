@@ -25,7 +25,6 @@ let outs = 0;
 let isSwinging = false;
 let pitchInProgress = false;
 let swingCompleted = true;
-let redLight, yellowLight, greenLight;
 
 function preload() {
     // Load assets
@@ -33,9 +32,6 @@ function preload() {
     this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
     this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
     this.load.image('ball', 'smallsoftball.png');
-    this.load.image('redLight', 'redlight.png');
-    this.load.image('yellowLight', 'yellowlight.png');
-    this.load.image('greenLight', 'greenlight.png');
 }
 
 function create() {
@@ -69,16 +65,6 @@ function create() {
     // Score and outs display
     scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
     outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
-
-    // Lights for pitch timer
-    redLight = this.add.image(700, 50, 'redLight').setScale(0.5);
-    yellowLight = this.add.image(700, 100, 'yellowLight').setScale(0.5);
-    greenLight = this.add.image(700, 150, 'greenLight').setScale(0.5);
-
-    // Initialize lights
-    redLight.setVisible(true);
-    yellowLight.setVisible(false);
-    greenLight.setVisible(false);
 
     // Set initial pitch position and speed
     resetPitch();
@@ -114,29 +100,9 @@ function update() {
 
 function startPitchingTimer() {
     this.time.addEvent({
-        delay: 3000,  // Red light duration
+        delay: 5000,  // Time between pitches
         callback: () => {
-            redLight.setVisible(false);
-            yellowLight.setVisible(true);
-
-            this.time.addEvent({
-                delay: 2000,  // Yellow light duration
-                callback: () => {
-                    yellowLight.setVisible(false);
-                    greenLight.setVisible(true);
-
-                    this.time.addEvent({
-                        delay: 1000,  // Green light duration
-                        callback: () => {
-                            greenLight.setVisible(false);
-                            redLight.setVisible(true);
-                            startPitch();
-                        },
-                        callbackScope: this
-                    });
-                },
-                callbackScope: this
-            });
+            startPitch();
         },
         callbackScope: this,
         loop: true
