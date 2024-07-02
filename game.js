@@ -19,7 +19,7 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let batter, pitcher, ball, cursors, scoreText, outsText, startButton;
+let batter, pitcher, ball, scoreText, outsText, startButton;
 let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
@@ -59,24 +59,30 @@ function create() {
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
-  cursors = this.input.keyboard.createCursorKeys();
-
   this.physics.add.overlap(batter, ball, checkHit, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
+  // Start Button
   startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
     .setOrigin(0.5)
     .setInteractive()
     .on('pointerdown', startGame, this);
+
+  // Add event listener for mouse click
+  this.input.on('pointerdown', () => {
+    if (gameState === 'pitching') {
+      gameState = 'swinging';
+      batter.anims.play('batter_swing');
+    }
+  });
 }
 
 function update() {
-  if (cursors.space.isDown && gameState === 'waitingForPitch') {
-    gameState = 'swinging';
-    batter.anims.play('batter_swing');
-  }
+  console.log('Game State:', gameState);
+  console.log('Pitch In Progress:', pitchInProgress);
+  console.log('Ball Position:', ball.x, ball.y);
 
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
     batter.setFrame(0);
