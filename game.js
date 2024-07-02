@@ -80,18 +80,16 @@ function update() {
     }
 
     // Detect swing (press space to swing)
-    if (cursors.space.isDown && !isSwinging && swingCompleted) {
+    if (cursors.space.isDown && !isSwinging) {
         isSwinging = true;
-        swingCompleted = false;
         batter.anims.play('batter_swing');
-    }
-
-    // Reset swing animation
-    if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
+    } else if (cursors.space.isUp && isSwinging) {
         isSwinging = false;
-        swingCompleted = true;
         batter.anims.stop();
         batter.setFrame(0);  // Reset to initial frame
+    }
+
+    if (isSwinging) {
         checkHit();
     }
 }
@@ -123,13 +121,23 @@ function ballOut() {
 }
 
 function resetPitch() {
-    ball.y = pitcher.y;
-    ball.x = pitcher.x;
+    ball.setPosition(pitcher.x, pitcher.y);
     pitchSpeed = Phaser.Math.Between(2, 5);
     pitchInProgress = true;
 
     // Play pitcher throw animation
     pitcher.anims.play('pitcher_throw');
+
+    // Ensure ball moves towards the batter
+    this.tweens.add({
+        targets: ball,
+        y: 550,  // Y-coordinate of the batter
+        ease: 'Linear',
+        duration: 2000 / pitchSpeed,  // Duration inversely proportional to pitch speed
+        onComplete: () => {
+            pitchInProgress = false;
+        }
+    });
 }
 
 function resetGame() {
