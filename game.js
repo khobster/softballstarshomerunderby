@@ -108,7 +108,7 @@ function startPitch() {
   hitRegistered = false;
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
-    pitchBall();
+    pitchBall.call(this);
   });
 }
 
@@ -117,9 +117,9 @@ function pitchBall() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
-  const pitchSpeed = 300; // Adjust speed (pixels per second)
+  const pitchSpeed = 200; // Adjust speed (pixels per second)
   const pitchAngle = Phaser.Math.Between(-10, 10); // Slight angle variation
-  this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity);
+  this.physics.velocityFromRotation(Phaser.Math.DegToRad(pitchAngle), pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
 }
