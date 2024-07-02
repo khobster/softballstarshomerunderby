@@ -24,6 +24,7 @@ let score = 0;
 let outs = 0;
 let isSwinging = false;
 let pitchInProgress = false;
+let pitchSpeed = 200;
 
 function preload() {
     this.load.image('field', 'field.png');
@@ -33,7 +34,7 @@ function preload() {
 }
 
 function create() {
-    this.add.image(400, 262, 'field');  // Centered field image
+    this.add.image(400, 262, 'field'); 
 
     this.anims.create({
         key: 'batter_swing',
@@ -52,6 +53,7 @@ function create() {
     batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
     pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
     ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
+    ball.body.allowGravity = false; // Ensure no gravity affects the ball
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -61,7 +63,7 @@ function create() {
     outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
     this.time.addEvent({
-        delay: 2000,  // Pitch every 2 seconds
+        delay: 2000,
         callback: startPitch,
         callbackScope: this,
         loop: true
@@ -81,7 +83,7 @@ function update() {
     }
 
     if (pitchInProgress) {
-        ball.y += 5;  // Adjust speed for realistic pitching
+        ball.y += 5; // Adjust speed for realistic pitching
         if (ball.y > 550) {
             pitchInProgress = false;
             ball.setVelocity(0);
@@ -93,6 +95,9 @@ function update() {
 function startPitch() {
     if (pitchInProgress) return;
 
+    pitchInProgress = true;
+    ball.setPosition(pitcher.x, pitcher.y);
+
     pitcher.anims.play('pitcher_throw');
     pitcher.once('animationcomplete', () => {
         pitchBall();
@@ -101,16 +106,18 @@ function startPitch() {
 
 function pitchBall() {
     ball.setPosition(pitcher.x, pitcher.y); // Reset ball position
-
-    pitchInProgress = true;
+    ball.setActive(true).setVisible(true); // Make ball visible again
+  
+    pitchSpeed = Phaser.Math.GetSpeed(500, 1); // Adjust speed as needed
+    let pitchAngle = Phaser.Math.Between(-15, 15); // Slight angle variation
+    this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity); // Set velocity
 }
 
 function checkHit() {
     if (this.physics.overlap(batter, ball)) {
         hitBall();
     } else {
-        console.log('Missed!');
-        resetPitch();
+        resetPitch(); 
     }
 }
 
@@ -118,7 +125,9 @@ function hitBall() {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
     console.log(`Home Run! Score: ${score}, Outs: ${outs}`);
-    resetPitch();
+
+    ball.setActive(false).setVisible(false); // Remove ball temporarily
+    this.time.delayedCall(500, resetPitch, [], this); // Reset pitch after a delay
 }
 
 function ballOut() {
@@ -126,7 +135,6 @@ function ballOut() {
     outsText.setText(`Outs: ${outs}`);
     console.log(`Out! Score: ${score}, Outs: ${outs}`);
     if (outs >= 5) {
-        console.log('Game Over!');
         this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
         resetGame();
     } else {
@@ -136,6 +144,7 @@ function ballOut() {
 
 function resetPitch() {
     ball.setPosition(pitcher.x, pitcher.y);
+    ball.setVelocity(0);
     pitchInProgress = false;
 }
 
