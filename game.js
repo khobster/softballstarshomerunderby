@@ -31,10 +31,6 @@ function preload() {
   this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
   this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
   this.load.image('ball', 'smallsoftball.png');
-
-  this.load.on('complete', () => { 
-    console.log('Assets loaded successfully!');
-  });
 }
 
 function create() {
@@ -58,6 +54,7 @@ function create() {
   pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
+  ball.setActive(false).setVisible(false);
 
   this.physics.add.overlap(batter, ball, checkHit, null, this);
 
@@ -106,6 +103,8 @@ function startPitch() {
   gameState = 'pitching';
   pitchInProgress = true;
   hitRegistered = false;
+  ball.setPosition(pitcher.x, pitcher.y);
+  ball.setActive(true).setVisible(true);
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
     pitchBall.call(this);
@@ -113,12 +112,10 @@ function startPitch() {
 }
 
 function pitchBall() {
-  ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
   const pitchSpeed = 200; // Adjust speed (pixels per second)
-  const pitchAngle = Phaser.Math.Between(-10, 10); // Slight angle variation
+  const pitchAngle = 90; // Pitching straight forward
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(pitchAngle), pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
@@ -155,6 +152,7 @@ function ballOut() {
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
+  ball.setActive(false).setVisible(false);
   pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
