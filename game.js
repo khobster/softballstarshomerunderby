@@ -26,6 +26,7 @@ let outs = 0;
 let isSwinging = false;
 let pitchSpeed = 2;
 let pitchInProgress = false;
+let swingCompleted = true;
 
 function preload() {
     // Load assets
@@ -57,7 +58,7 @@ function create() {
     // Add the batter and pitcher sprites with correct positions and scaling
     batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
     pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
-    ball = this.physics.add.sprite(400, 317, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
+    ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -79,15 +80,19 @@ function update() {
     }
 
     // Detect swing (press space to swing)
-    if (cursors.space.isDown && !isSwinging) {
+    if (cursors.space.isDown && !isSwinging && swingCompleted) {
         isSwinging = true;
+        swingCompleted = false;
         batter.anims.play('batter_swing');
-        checkHit();
     }
 
     // Reset swing animation
     if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
         isSwinging = false;
+        swingCompleted = true;
+        batter.anims.stop();
+        batter.setFrame(0);  // Reset to initial frame
+        checkHit();
     }
 }
 
