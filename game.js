@@ -24,8 +24,9 @@ let cursors;
 let score = 0;
 let outs = 0;
 let isSwinging = false;
-let pitchSpeed = 2000;  // Duration for the ball to reach the batter
+let pitchSpeed = 2;
 let pitchInProgress = false;
+let swingCompleted = true;
 
 function preload() {
     // Load assets
@@ -70,18 +71,25 @@ function create() {
 function update() {
     // Move the ball (pitching logic)
     if (pitchInProgress) {
-        // The ball is already moving via tween
+        ball.y += pitchSpeed;
+
+        // Check if the ball goes out of bounds (counts as an out)
+        if (ball.y > 600) {
+            ballOut();
+        }
     }
 
     // Detect swing (press space to swing)
-    if (cursors.space.isDown && !isSwinging) {
+    if (cursors.space.isDown && !isSwinging && swingCompleted) {
         isSwinging = true;
+        swingCompleted = false;
         batter.anims.play('batter_swing');
     }
 
     // Reset swing animation
     if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
         isSwinging = false;
+        swingCompleted = true;
         batter.anims.stop();
         batter.setFrame(0);  // Reset to initial frame
         checkHit();
@@ -117,23 +125,20 @@ function ballOut() {
 
 function resetPitch() {
     ball.setPosition(pitcher.x, pitcher.y);
+    pitchSpeed = Phaser.Math.Between(2, 5);
     pitchInProgress = true;
 
     // Play pitcher throw animation
     pitcher.anims.play('pitcher_throw');
 
-    // Ensure ball moves towards the batter smoothly
-    this.tweens.add({
+    // Ensure ball moves towards the batter
+    game.scene.scenes[0].tweens.add({
         targets: ball,
         y: 550,  // Y-coordinate of the batter
         ease: 'Linear',
-        duration: pitchSpeed,  // Duration for the ball to reach the batter
+        duration: 2000 / pitchSpeed,  // Duration inversely proportional to pitch speed
         onComplete: () => {
             pitchInProgress = false;
-            // Check if the ball went past the batter
-            if (ball.y >= 550) {
-                ballOut();
-            }
         }
     });
 }
