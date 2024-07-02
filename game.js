@@ -19,12 +19,13 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let batter, pitcher, ball, cursors, pitchButton, scoreText, outsText;
+let batter, pitcher, ball, cursors, scoreText, outsText;
 let score = 0;
 let outs = 0;
 let isSwinging = false;
 let pitchInProgress = false;
 let swingCompleted = true;
+let redLight, yellowLight, greenLight;
 
 function preload() {
     // Load assets
@@ -32,6 +33,9 @@ function preload() {
     this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
     this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
     this.load.image('ball', 'smallsoftball.png');
+    this.load.image('redLight', 'redlight.png');
+    this.load.image('yellowLight', 'yellowlight.png');
+    this.load.image('greenLight', 'greenlight.png');
 }
 
 function create() {
@@ -62,17 +66,23 @@ function create() {
 
     this.physics.add.collider(batter, ball, hitBall, null, this);
 
-    // Pitch button
-    pitchButton = this.add.text(650, 480, 'Pitch', { fontSize: '24px', fill: '#fff' })
-        .setInteractive()
-        .on('pointerdown', startPitch);
-
     // Score and outs display
     scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
     outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
+    // Lights for pitch timer
+    redLight = this.add.image(700, 50, 'redLight').setScale(0.5);
+    yellowLight = this.add.image(700, 100, 'yellowLight').setScale(0.5);
+    greenLight = this.add.image(700, 150, 'greenLight').setScale(0.5);
+
+    // Initialize lights
+    redLight.setVisible(true);
+    yellowLight.setVisible(false);
+    greenLight.setVisible(false);
+
     // Set initial pitch position and speed
     resetPitch();
+    startPitchingTimer();
 }
 
 function update() {
@@ -102,9 +112,39 @@ function update() {
     }
 }
 
+function startPitchingTimer() {
+    this.time.addEvent({
+        delay: 3000,  // Red light duration
+        callback: () => {
+            redLight.setVisible(false);
+            yellowLight.setVisible(true);
+
+            this.time.addEvent({
+                delay: 2000,  // Yellow light duration
+                callback: () => {
+                    yellowLight.setVisible(false);
+                    greenLight.setVisible(true);
+
+                    this.time.addEvent({
+                        delay: 1000,  // Green light duration
+                        callback: () => {
+                            greenLight.setVisible(false);
+                            redLight.setVisible(true);
+                            startPitch();
+                        },
+                        callbackScope: this
+                    });
+                },
+                callbackScope: this
+            });
+        },
+        callbackScope: this,
+        loop: true
+    });
+}
+
 function startPitch() {
     pitcher.anims.play('pitcher_throw', true); // Play the throw animation
-    pitchButton.disableInteractive(); // Disable the button during the pitch
 
     // Wait for the pitcher's animation to complete before pitching the ball
     pitcher.on('animationcomplete', () => {
@@ -114,7 +154,7 @@ function startPitch() {
 
 function pitchBall() {
     pitchInProgress = true;
-    pitchSpeed = Phaser.Math.Between(2, 5);
+    pitchSpeed = 2; // Slowed down for testing
 
     // Ensure ball moves towards the batter
     ball.setPosition(pitcher.x, pitcher.y - 30); // Start the ball at the pitcher's hand
@@ -126,7 +166,6 @@ function pitchBall() {
         onComplete: () => {
             pitchInProgress = false;
             if (!isSwinging) ballOut();
-            pitchButton.setInteractive(); // Re-enable the button
         }
     });
 }
@@ -171,5 +210,4 @@ function resetGame() {
     outs = 0;
     scoreText.setText('Home Runs: 0');
     outsText.setText('Outs: 0');
-    pitchButton.setInteractive(); // Re-enable the button
 }
