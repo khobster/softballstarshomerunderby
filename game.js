@@ -24,7 +24,7 @@ let cursors;
 let score = 0;
 let outs = 0;
 let isSwinging = false;
-let pitchSpeed = 2;
+let pitchSpeed = 2000;  // Duration for the ball to reach the batter
 let pitchInProgress = false;
 
 function preload() {
@@ -70,12 +70,7 @@ function create() {
 function update() {
     // Move the ball (pitching logic)
     if (pitchInProgress) {
-        ball.y += pitchSpeed;
-
-        // Check if the ball goes out of bounds (counts as an out)
-        if (ball.y > 600) {
-            ballOut();
-        }
+        // The ball is already moving via tween
     }
 
     // Detect swing (press space to swing)
@@ -122,22 +117,23 @@ function ballOut() {
 
 function resetPitch() {
     ball.setPosition(pitcher.x, pitcher.y);
-    pitchSpeed = Phaser.Math.Between(2, 5);
     pitchInProgress = true;
 
     // Play pitcher throw animation
     pitcher.anims.play('pitcher_throw');
 
-    // Ensure ball moves towards the batter
-    game.scene.scenes[0].tweens.add({
+    // Ensure ball moves towards the batter smoothly
+    this.tweens.add({
         targets: ball,
         y: 550,  // Y-coordinate of the batter
         ease: 'Linear',
-        duration: 2000 / pitchSpeed,  // Duration inversely proportional to pitch speed
+        duration: pitchSpeed,  // Duration for the ball to reach the batter
         onComplete: () => {
             pitchInProgress = false;
-            // Reset ball position for next pitch
-            ball.setPosition(pitcher.x, pitcher.y);
+            // Check if the ball went past the batter
+            if (ball.y >= 550) {
+                ballOut();
+            }
         }
     });
 }
