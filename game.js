@@ -19,12 +19,12 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let batter, pitcher, ball, cursors, scoreText, outsText;
+let batter, pitcher, ball, cursors, scoreText, outsText, startButton;
 let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
 let hitRegistered = false;
-let outRegistered = false;
+let pitchInProgress = false;
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -66,8 +66,7 @@ function create() {
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
-  // Start Button
-  const startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
+  startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
     .setOrigin(0.5)
     .setInteractive()
     .on('pointerdown', startGame, this);
@@ -82,15 +81,16 @@ function update() {
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
     batter.setFrame(0);
     gameState = 'waitingForPitch';
+    checkHit();  // Check for hit after the swing completes
   }
 
-  if (pitchInProgress && ball.y > 550) { // Ball past batter
-    ballOut(); 
+  if (pitchInProgress && ball.y > 550) {
+    ballOut();
   }
 }
 
 function startGame() {
-  this.children.removeAll(); // Remove the start button
+  startButton.setVisible(false); // Hide the start button
   this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
 }
 
@@ -98,7 +98,8 @@ function startPitch() {
   if (gameState !== 'waitingForPitch') return;
 
   gameState = 'pitching';
-  outRegistered = false; 
+  pitchInProgress = true;
+  hitRegistered = false;
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
     pitchBall();
@@ -110,8 +111,8 @@ function pitchBall() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
-  const pitchSpeed = 500; // Adjusted speed (pixels per second)
-  const pitchAngle = Phaser.Math.Between(-15, 15); // Slight angle variation
+  const pitchSpeed = 300; // Adjust speed (pixels per second)
+  const pitchAngle = Phaser.Math.Between(-10, 10); // Slight angle variation
   this.physics.velocityFromAngle(pitchAngle, pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
@@ -132,7 +133,8 @@ function hitBall() {
 }
 
 function ballOut() {
-  outRegistered = true;
+  if (!pitchInProgress) return;
+
   outs += 1;
   outsText.setText(`Outs: ${outs}`);
   if (outs >= 5) {
@@ -146,7 +148,8 @@ function ballOut() {
 
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
-  ball.setVelocity(0); 
+  ball.setVelocity(0);
+  pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
 
@@ -155,5 +158,5 @@ function resetGame() {
   outs = 0;
   scoreText.setText('Home Runs: 0');
   outsText.setText('Outs: 0');
-  startPitch();
+  startGame();
 }
