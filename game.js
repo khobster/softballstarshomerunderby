@@ -25,7 +25,7 @@ let score = 0;
 let outs = 0;
 let isSwinging = false;
 let pitchSpeed = 2;
-let pitchPosition;
+let pitchInProgress = false;
 
 function preload() {
     // Load assets
@@ -44,23 +44,20 @@ function create() {
         key: 'batter_swing',
         frames: this.anims.generateFrameNumbers('batter', { start: 0, end: 5 }),
         frameRate: 10,
-        repeat: -1
+        repeat: 0
     });
 
     this.anims.create({
         key: 'pitcher_throw',
         frames: this.anims.generateFrameNumbers('pitcher', { start: 0, end: 5 }),
         frameRate: 10,
-        repeat: -1
+        repeat: 0
     });
 
     // Add the batter and pitcher sprites with correct positions and scaling
     batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
     pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
-    ball = this.physics.add.sprite(400, 500, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
-
-    batter.anims.play('batter_swing');
-    pitcher.anims.play('pitcher_throw');
+    ball = this.physics.add.sprite(400, 317, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -72,11 +69,13 @@ function create() {
 
 function update() {
     // Move the ball (pitching logic)
-    ball.y += pitchSpeed;
+    if (pitchInProgress) {
+        ball.y += pitchSpeed;
 
-    // Check if the ball goes out of bounds (counts as an out)
-    if (ball.y > 600) {
-        ballOut();
+        // Check if the ball goes out of bounds (counts as an out)
+        if (ball.y > 600) {
+            ballOut();
+        }
     }
 
     // Detect swing (press space to swing)
@@ -86,6 +85,7 @@ function update() {
         checkHit();
     }
 
+    // Reset swing animation
     if (isSwinging && batter.anims.currentFrame.index === batter.anims.getTotalFrames() - 1) {
         isSwinging = false;
     }
@@ -118,11 +118,13 @@ function ballOut() {
 }
 
 function resetPitch() {
-    ball.y = 200;
-    ball.x = Phaser.Math.Between(100, 700);
+    ball.y = pitcher.y;
+    ball.x = pitcher.x;
     pitchSpeed = Phaser.Math.Between(2, 5);
-    pitchPosition = Phaser.Math.Between(100, 700);
-    ball.x = pitchPosition;
+    pitchInProgress = true;
+
+    // Play pitcher throw animation
+    pitcher.anims.play('pitcher_throw');
 }
 
 function resetGame() {
