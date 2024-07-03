@@ -27,7 +27,7 @@ let hitRegistered = false;
 let pitchInProgress = false;
 
 // Fence coordinates
-const redLineY = 350; // Move the red line to 350 on the y-axis
+const redLineY = 190; // Move the red line to 190 on the y-axis
 const fenceTopY = 0; // Green line position at the very top for rare home runs
 
 function preload() {
@@ -60,7 +60,7 @@ function create() {
 
   batter = this.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
   pitcher = this.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
-  ball = this.physics.add.sprite(pitcher.x, 330, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
+  ball = this.physics.add.sprite(pitcher.x, 220, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
   // Create visible red line (home run line)
@@ -101,6 +101,11 @@ function update() {
   if (pitchInProgress && ball.y > 550) {
     ballOut.call(this);
   }
+
+  if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
+    batter.setFrame(0);
+    gameState = 'waitingForPitch';
+  }
 }
 
 function startGame() {
@@ -122,11 +127,11 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, 330); // Ensure ball starts with the pitcher
+  ball.setPosition(pitcher.x, 220); // Ensure ball starts with the pitcher
   ball.setVelocity(0);
 
   const pitchSpeed = 300; // Adjust pitch speed if needed
-  const pitchAngle = Phaser.Math.Between(-15, 5);
+  const pitchAngle = Phaser.Math.Between(-5, 5);
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
@@ -180,7 +185,7 @@ function ballOut() {
 }
 
 function resetPitch() {
-  ball.setPosition(pitcher.x, 330); // Reset ball to the pitcher's position
+  ball.setPosition(pitcher.x, 220); // Reset ball to the pitcher's position
   ball.setVelocity(0);
   pitchInProgress = false;
   gameState = 'waitingForPitch';
