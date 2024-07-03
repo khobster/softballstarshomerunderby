@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 }, // Simulate gravity for ball trajectory
+      gravity: { y: 300 }, // Gravity for ball trajectory
       debug: false
     }
   },
@@ -25,7 +25,6 @@ let score = 0;
 let outs = 0;
 let hitRegistered = false;
 let pitchInProgress = false;
-let fence;
 
 // Fence coordinates
 const fenceLeftX = 100; 
@@ -63,7 +62,10 @@ function create() {
   batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
   pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
-  ball.body.allowGravity = false;
+
+  // Disable gravity for pitcher and batter
+  batter.body.allowGravity = false;
+  pitcher.body.allowGravity = false;
 
   this.physics.add.overlap(batter, ball, checkHit, null, this);
 
