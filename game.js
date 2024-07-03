@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 }, // Gravity for ball trajectory
+      gravity: { y: 300 }, // Simulate gravity for ball trajectory
       debug: false
     }
   },
@@ -25,11 +25,6 @@ let score = 0;
 let outs = 0;
 let hitRegistered = false;
 let pitchInProgress = false;
-
-// Fence coordinates
-const fenceLeftX = 100; 
-const fenceRightX = 700;
-const fenceTopY = 200;  
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -66,6 +61,7 @@ function create() {
   // Disable gravity for pitcher and batter
   batter.body.allowGravity = false;
   pitcher.body.allowGravity = false;
+  ball.body.allowGravity = true;
 
   this.physics.add.overlap(batter, ball, checkHit, null, this);
 
@@ -95,7 +91,7 @@ function update() {
   }
 
   if (pitchInProgress && ball.y > 550) { 
-    ballOut.call(this); 
+    ballOut(); 
   }
 }
 
@@ -110,6 +106,7 @@ function startPitch() {
   gameState = 'pitching';
   pitchInProgress = true;
   hitRegistered = false;
+  ball.setPosition(pitcher.x, pitcher.y); // Ensure ball starts at the pitcher's position
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
     pitchBall.call(this);
@@ -118,11 +115,10 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, pitcher.y); 
   ball.setVelocity(0);
 
-  const pitchSpeed = Phaser.Math.GetSpeed(500, 1);
-  const pitchAngle = Phaser.Math.Between(-5, 5); 
+  const pitchSpeed = 300; // Adjusted speed (pixels per second)
+  const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity); 
 
   pitchInProgress = true;
@@ -145,7 +141,6 @@ function hitBall() {
 }
 
 function simulateBallFlight() {
-  // Logic for ball flight after hit
   const ballFlightSpeed = Phaser.Math.Between(300, 400); // Adjust speed
   const ballFlightAngle = Phaser.Math.Between(-10, 10); // Adjust angle for a more realistic trajectory
   ball.setPosition(batter.x, batter.y - 50);
