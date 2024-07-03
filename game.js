@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 }, // Set gravity to zero for a simple 2D game
+      gravity: { y: 300 }, // Set gravity for the ball's flight
       debug: false
     }
   },
@@ -144,7 +144,7 @@ function simulateBallFlight() {
   const ballFlightAngle = Phaser.Math.Between(-10, 10); // Adjust angle for a more realistic trajectory
   ball.setPosition(batter.x, batter.y - 50);
   ball.setActive(true).setVisible(true);
-  ball.body.allowGravity = true;
+  ball.body.allowGravity = true; // Enable gravity for realistic flight
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + ballFlightAngle), ballFlightSpeed, ball.body.velocity);
 }
 
@@ -165,7 +165,7 @@ function ballOut() {
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
-  ball.body.allowGravity = false;
+  ball.body.allowGravity = false; // Disable gravity to reset pitch state
   pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
