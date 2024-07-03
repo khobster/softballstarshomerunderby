@@ -27,7 +27,7 @@ let hitRegistered = false;
 let pitchInProgress = false;
 
 // Fence coordinates
-const redLineY = 190; // Move the red line to 190 on the y-axis
+const redLineY = 203; // Move the red line to 203 on the y-axis
 const fenceTopY = 0; // Green line position at the very top for rare home runs
 
 function preload() {
@@ -60,7 +60,7 @@ function create() {
 
   batter = this.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
   pitcher = this.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
-  ball = this.physics.add.sprite(pitcher.x, 220, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
+  ball = this.physics.add.sprite(pitcher.x, 235, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
   // Create visible red line (home run line)
@@ -127,7 +127,7 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, 220); // Ensure ball starts with the pitcher
+  ball.setPosition(pitcher.x, 235); // Ensure ball starts with the pitcher
   ball.setVelocity(0);
 
   const pitchSpeed = 300; // Adjust pitch speed if needed
@@ -185,7 +185,7 @@ function ballOut() {
 }
 
 function resetPitch() {
-  ball.setPosition(pitcher.x, 220); // Reset ball to the pitcher's position
+  ball.setPosition(pitcher.x, 235); // Reset ball to the pitcher's position
   ball.setVelocity(0);
   pitchInProgress = false;
   gameState = 'waitingForPitch';
