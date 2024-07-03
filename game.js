@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 }, // Set gravity for the ball's flight
+      gravity: { y: 0 }, // Initially no gravity
       debug: false
     }
   },
@@ -113,6 +113,7 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
+  ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
   const pitchSpeed = 300; // Adjusted speed (pixels per second)
