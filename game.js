@@ -28,7 +28,7 @@ let pitchInProgress = false;
 
 // Fence coordinates
 const redLineY = 317; // Red line at the pitcher's head level
-const fenceTopY = 100; // Green line position at the top for rare home runs
+const fenceTopY = 0; // Green line position at the very top for rare home runs
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -122,7 +122,7 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, pitcher.y);
+  ball.setPosition(pitcher.x, pitcher.y); // Ensure ball starts with the pitcher
   ball.setVelocity(0);
 
   const pitchSpeed = Phaser.Math.GetSpeed(500, 1);
