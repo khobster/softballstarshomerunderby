@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 },
+      gravity: { y: 0 },
       debug: false
     }
   },
@@ -27,7 +27,7 @@ let hitRegistered = false;
 let pitchInProgress = false;
 
 // Fence coordinates
-const redLineY = 150; // Move the red line up by 150 pixels from the previous position
+const redLineY = 350; // Move the red line down by 200 pixels
 const fenceTopY = 100; // Green line position at the top for rare home runs
 
 function preload() {
@@ -58,13 +58,10 @@ function create() {
     repeat: 0
   });
 
-  batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
-  pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
+  batter = this.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
+  pitcher = this.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
-
-  batter.body.immovable = true;
-  pitcher.body.immovable = true;
 
   // Create visible red line (home run line)
   const redLine = this.add.rectangle(400, redLineY, 800, 10, 0xff0000).setOrigin(0.5, 0.5);
