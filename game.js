@@ -27,7 +27,7 @@ let hitRegistered = false;
 let pitchInProgress = false;
 
 // Fence coordinates
-const redLineY = 350; // Move the red line down by 200 pixels
+const redLineY = 317; // Red line at the pitcher's head level
 const fenceTopY = 100; // Green line position at the top for rare home runs
 
 function preload() {
@@ -92,14 +92,14 @@ function create() {
     if (gameState === 'pitching') {
       gameState = 'swinging';
       batter.anims.play('batter_swing');
-      checkHit(); // Check for a hit when the player swings
+      checkHit.call(this); // Ensure checkHit is called with the correct context
     }
   });
 }
 
 function update() {
   if (pitchInProgress && ball.y > 550) {
-    ballOut();
+    ballOut.call(this);
   }
 }
 
@@ -135,7 +135,7 @@ function pitchBall() {
 function checkHit() {
   if (this.physics.overlap(batter, ball) && !hitRegistered) {
     hitRegistered = true;
-    hitBall();
+    hitBall.call(this);
   }
 }
 
@@ -147,7 +147,7 @@ function hitBall() {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
   } else {
-    ballOut();
+    ballOut.call(this);
   }
 }
 
@@ -161,7 +161,7 @@ function handleBallHitZone(ball, line) {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
   } else if (ball.y > redLineY) {
-    ballOut();
+    ballOut.call(this);
   }
 }
 
