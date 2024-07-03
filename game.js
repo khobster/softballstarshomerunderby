@@ -31,6 +31,10 @@ function preload() {
   this.load.spritesheet('batter', 'battersmallsprite.png', { frameWidth: 64, frameHeight: 68 });
   this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
   this.load.image('ball', 'smallsoftball.png');
+
+  this.load.on('complete', () => { 
+    console.log('Assets loaded successfully!');
+  });
 }
 
 function create() {
@@ -76,6 +80,10 @@ function create() {
 }
 
 function update() {
+  console.log('Game State:', gameState);
+  console.log('Pitch In Progress:', pitchInProgress);
+  console.log('Ball Position:', ball.x, ball.y);
+
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
     batter.setFrame(0);
     gameState = 'waitingForPitch';
@@ -83,7 +91,7 @@ function update() {
   }
 
   if (pitchInProgress && ball.y > 550) {
-    ballOut();
+    ballOut.call(this);
   }
 }
 
@@ -134,8 +142,8 @@ function hitBall() {
 
 function simulateBallFlight() {
   // Logic for ball flight after hit
-  const ballFlightSpeed = Phaser.Math.Between(300, 500); // Adjusted speed for hit ball
-  const ballFlightAngle = Phaser.Math.Between(-5, 5); // Adjust angle for realistic hits
+  const ballFlightSpeed = Phaser.Math.Between(300, 500);
+  const ballFlightAngle = Phaser.Math.Between(-5, 5);
   ball.setPosition(batter.x, batter.y - 50);
   ball.setActive(true).setVisible(true);
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(ballFlightAngle), ballFlightSpeed, ball.body.velocity);
