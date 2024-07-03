@@ -92,14 +92,14 @@ function create() {
     if (gameState === 'pitching') {
       gameState = 'swinging';
       batter.anims.play('batter_swing');
-      checkHit(); // Check for a hit immediately
+      checkHit.call(this); // Ensure checkHit is called with the correct context
     }
   });
 }
 
 function update() {
   if (pitchInProgress && ball.y > 550) {
-    ballOut();
+    ballOut.call(this);
   }
 
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
@@ -121,7 +121,7 @@ function startPitch() {
   hitRegistered = false;
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
-    pitchBall();
+    pitchBall.call(this);
   });
 }
 
@@ -140,7 +140,7 @@ function pitchBall() {
 function checkHit() {
   if (this.physics.overlap(batter, ball) && !hitRegistered) {
     hitRegistered = true;
-    hitBall();
+    hitBall.call(this);
   }
 }
 
@@ -152,7 +152,7 @@ function hitBall() {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
   } else {
-    ballOut();
+    ballOut.call(this);
   }
 }
 
@@ -166,7 +166,7 @@ function handleBallHitZone(ball, line) {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
   } else if (ball.y > redLineY) {
-    ballOut();
+    ballOut.call(this);
   }
 }
 
@@ -182,7 +182,6 @@ function ballOut() {
     this.time.delayedCall(500, resetPitch, [], this);
   }
   pitchInProgress = false;
-  gameState = 'waitingForPitch';
 }
 
 function resetPitch() {
