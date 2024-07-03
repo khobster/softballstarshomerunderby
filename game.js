@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 }, // Simulate gravity for ball trajectory
+      gravity: { y: 300 },
       debug: false
     }
   },
@@ -57,17 +57,13 @@ function create() {
   batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
   pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
-  
-  // Disable gravity for pitcher and batter
-  batter.body.allowGravity = false;
-  pitcher.body.allowGravity = false;
   ball.body.allowGravity = false;
 
   // Create custom hitbox for the bat
-  batter.body.setSize(20, 20, true); // Adjust the size and position of the hitbox
-  batter.body.setOffset(20, 40); // Adjust the offset to align with the bat
+  batter.body.setSize(30, 10, true); // Adjust the size of the hitbox
+  batter.body.setOffset(25, 20); // Adjust the offset to align with the bat
 
-  this.physics.add.collider(ball, batter, checkHit, null, this);
+  this.physics.add.overlap(ball, batter, checkHit, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
@@ -120,7 +116,7 @@ function pitchBall() {
   ball.setActive(true).setVisible(true);
   ball.setVelocity(0);
 
-  const pitchSpeed = 300; // Adjusted speed (pixels per second)
+  const pitchSpeed = Phaser.Math.GetSpeed(500, 1); // Adjusted speed (pixels per second)
   const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity); 
 
