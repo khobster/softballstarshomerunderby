@@ -118,8 +118,8 @@ function pitchBall() {
   ball.setVelocity(0);
 
   const pitchSpeed = Phaser.Math.Between(200, 300); // Adjust speed (pixels per second)
-  const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
-  this.physics.velocityFromRotation(Phaser.Math.DegToRad(pitchAngle), pitchSpeed, ball.body.velocity);
+  const pitchAngle = Phaser.Math.DegToRad(90); // Angle to ensure the ball goes straight down the plate
+  this.physics.velocityFromRotation(pitchAngle, pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
 }
