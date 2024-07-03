@@ -87,7 +87,7 @@ function update() {
   }
 
   if (pitchInProgress && ball.y > 550) {
-    ballOut();
+    ballOut.call(this); // Ensure ballOut is called within the correct context
   }
 }
 
