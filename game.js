@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 }, // Initially no gravity
+      gravity: { y: 300 }, // Simulate gravity for ball trajectory
       debug: false
     }
   },
@@ -20,12 +20,17 @@ const config = {
 const game = new Phaser.Game(config);
 
 let batter, pitcher, ball, scoreText, outsText, startButton;
-let gameState = 'waitingForPitch';
+let gameState = 'waitingForPitch'; 
 let score = 0;
 let outs = 0;
 let hitRegistered = false;
+let outRegistered = false;
 let pitchInProgress = false;
-let ballInFlight = false;
+
+// Fence coordinates
+const fenceLeftX = 100; 
+const fenceRightX = 700;
+const fenceTopY = 200;  
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -60,19 +65,33 @@ function create() {
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
-  batter.body.setSize(30, 10, true);
-  batter.body.setOffset(25, 20);
+  // Ensure ball starts at the pitcher
+  ball.setPosition(pitcher.x, pitcher.y);
 
-  this.physics.add.collider(ball, batter, checkHit, null, this);
+  // Create invisible fence
+  const fence = this.add.rectangle((fenceLeftX + fenceRightX) / 2, fenceTopY, fenceRightX - fenceLeftX, 10, 0xff0000).setOrigin(0.5, 1);
+  this.physics.add.existing(fence);
+  fence.body.immovable = true;
+  fence.body.allowGravity = false;
+
+  // Create invisible wall for out of bounds detection
+  const outOfBoundsZone = this.add.rectangle(0, 0, 800, 10, 0x00ff00).setOrigin(0); // Green for visibility (remove later)
+  this.physics.add.existing(outOfBoundsZone);
+  outOfBoundsZone.body.immovable = true;
+  outOfBoundsZone.body.allowGravity = false;
+
+  this.physics.add.collider(ball, outOfBoundsZone, ballOut, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
+  // Start Button
   startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
     .setOrigin(0.5)
     .setInteractive()
     .on('pointerdown', startGame, this);
 
+  // Add event listener for mouse click
   this.input.on('pointerdown', () => {
     if (gameState === 'pitching') {
       gameState = 'swinging';
@@ -82,18 +101,23 @@ function create() {
 }
 
 function update() {
+  console.log('Game State:', gameState);
+  console.log('Pitch In Progress:', pitchInProgress);
+  console.log('Ball Position:', ball.x, ball.y);
+
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
     batter.setFrame(0);
     gameState = 'waitingForPitch';
+    checkHit(); 
   }
 
-  if (pitchInProgress && ball.y > 550 && !ballInFlight) {
-    ballOut.call(this);
+  if (pitchInProgress && ball.y > 550) { 
+    ballOut(); 
   }
 }
 
 function startGame() {
-  startButton.setVisible(false);
+  startButton.setVisible(false); 
   this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
 }
 
@@ -103,8 +127,6 @@ function startPitch() {
   gameState = 'pitching';
   pitchInProgress = true;
   hitRegistered = false;
-  ballInFlight = false;
-  ball.setPosition(pitcher.x, pitcher.y);
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
     pitchBall.call(this);
@@ -113,12 +135,12 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, pitcher.y);
+  ball.setPosition(pitcher.x, pitcher.y); 
   ball.setVelocity(0);
 
-  const pitchSpeed = 300; // Adjusted speed (pixels per second)
-  const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
-  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity);
+  const pitchSpeed = Phaser.Math.GetSpeed(500, 1);
+  const pitchAngle = Phaser.Math.Between(-15, 5); 
+  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity); 
 
   pitchInProgress = true;
 }
@@ -126,7 +148,7 @@ function pitchBall() {
 function checkHit() {
   if (gameState === 'swinging' && this.physics.overlap(batter, ball) && !hitRegistered) {
     hitRegistered = true;
-    hitBall.call(this);
+    hitBall();
   }
 }
 
@@ -134,19 +156,16 @@ function hitBall() {
   score += 1;
   scoreText.setText(`Home Runs: ${score}`);
   ball.setActive(false).setVisible(false);
-  ballInFlight = true;
 
-  simulateBallFlight.call(this);
+  // Check if the ball went over the fence
+  if (ball.x > fenceLeftX && ball.x < fenceRightX && ball.y < fenceTopY) {
+    console.log("Home Run!");
+    // Add any additional home run effects here (e.g., animation, sound)
+  } else {
+    console.log("Not a home run");
+  }
+
   this.time.delayedCall(500, resetPitch, [], this);
-}
-
-function simulateBallFlight() {
-  const ballFlightSpeed = Phaser.Math.Between(300, 400); // Adjust speed
-  const ballFlightAngle = Phaser.Math.Between(-10, 10); // Adjust angle for a more realistic trajectory
-  ball.setPosition(batter.x, batter.y - 50);
-  ball.setActive(true).setVisible(true);
-  ball.body.allowGravity = true; // Enable gravity for realistic flight
-  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + ballFlightAngle), ballFlightSpeed, ball.body.velocity);
 }
 
 function ballOut() {
@@ -156,18 +175,16 @@ function ballOut() {
   outsText.setText(`Outs: ${outs}`);
   if (outs >= 5) {
     this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
-    this.time.addEvent({ delay: 2000, callback: resetGame, callbackScope: this });
+    this.time.delayedCall(2000, resetGame, [], this);
   } else {
-    this.time.addEvent({ delay: 500, callback: resetPitch, callbackScope: this });
+    this.time.delayedCall(500, resetPitch, [], this); 
   }
   pitchInProgress = false;
 }
 
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
-  ball.setVelocity(0);
-  ball.body.allowGravity = false; // Disable gravity to reset pitch state
-  pitchInProgress = false;
+  ball.setVelocity(0); 
   gameState = 'waitingForPitch';
 }
 
@@ -176,5 +193,5 @@ function resetGame() {
   outs = 0;
   scoreText.setText('Home Runs: 0');
   outsText.setText('Outs: 0');
-  startButton.setVisible(true);
+  startButton.setVisible(true); // Show the start button again after game over
 }
