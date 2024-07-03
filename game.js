@@ -143,10 +143,10 @@ function hitBall() {
 function simulateBallFlight() {
   // Logic for ball flight after hit
   const ballFlightSpeed = Phaser.Math.Between(300, 500);
-  const ballFlightAngle = Phaser.Math.Between(-5, 5);
+  const ballFlightAngle = Phaser.Math.DegToRad(Phaser.Math.Between(-5, 5));
   ball.setPosition(batter.x, batter.y - 50);
   ball.setActive(true).setVisible(true);
-  this.physics.velocityFromRotation(Phaser.Math.DegToRad(ballFlightAngle), ballFlightSpeed, ball.body.velocity);
+  this.physics.velocityFromRotation(ballFlightAngle, ballFlightSpeed, ball.body.velocity);
 }
 
 function ballOut() {
