@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 },
+      gravity: { y: 0 }, // Set gravity to zero for a simple 2D game
       debug: false
     }
   },
@@ -20,7 +20,7 @@ const config = {
 const game = new Phaser.Game(config);
 
 let batter, pitcher, ball, scoreText, outsText, startButton;
-let gameState = 'waitingForPitch'; 
+let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
 let hitRegistered = false;
@@ -33,7 +33,7 @@ function preload() {
   this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
   this.load.image('ball', 'smallsoftball.png');
 
-  this.load.on('complete', () => { 
+  this.load.on('complete', () => {
     console.log('Assets loaded successfully!');
   });
 }
@@ -87,13 +87,13 @@ function update() {
     gameState = 'waitingForPitch';
   }
 
-  if (pitchInProgress && ball.y > 550 && !ballInFlight) { 
-    ballOut();
+  if (pitchInProgress && ball.y > 550 && !ballInFlight) {
+    ballOut.call(this);
   }
 }
 
 function startGame() {
-  startButton.setVisible(false); 
+  startButton.setVisible(false);
   this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
 }
 
@@ -117,7 +117,7 @@ function pitchBall() {
 
   const pitchSpeed = 300; // Adjusted speed (pixels per second)
   const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
-  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity); 
+  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
 }
@@ -155,9 +155,9 @@ function ballOut() {
   outsText.setText(`Outs: ${outs}`);
   if (outs >= 5) {
     this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
-    this.time.delayedCall(2000, resetGame, [], this);
+    this.time.addEvent({ delay: 2000, callback: resetGame, callbackScope: this });
   } else {
-    this.time.delayedCall(500, resetPitch, [], this); 
+    this.time.addEvent({ delay: 500, callback: resetPitch, callbackScope: this });
   }
   pitchInProgress = false;
 }
