@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 },
+      gravity: { y: 0 }, // No gravity for the batter and pitcher
       debug: false
     }
   },
@@ -23,12 +23,8 @@ let batter, pitcher, ball, scoreText, outsText, startButton;
 let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
-let hitRegistered = false;
 let pitchInProgress = false;
-
-// Fence coordinates
-const redLineY = 350; // Move the red line down by 200 pixels
-const fenceTopY = 100; // Green line position at the top for rare home runs
+let hitRegistered = false;
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -36,7 +32,7 @@ function preload() {
   this.load.spritesheet('pitcher', 'pitchersmallsprite.png', { frameWidth: 64, frameHeight: 57 });
   this.load.image('ball', 'smallsoftball.png');
 
-  this.load.on('complete', () => {
+  this.load.on('complete', () => { 
     console.log('Assets loaded successfully!');
   });
 }
@@ -58,36 +54,32 @@ function create() {
     repeat: 0
   });
 
-  batter = this.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
-  pitcher = this.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
+  batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1).setImmovable(true);
+  pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1).setImmovable(true);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
-  // Create visible red line (home run line)
-  const redLine = this.add.rectangle(400, redLineY, 800, 10, 0xff0000).setOrigin(0.5, 0.5);
-  this.physics.add.existing(redLine);
-  redLine.body.immovable = true;
-  redLine.body.allowGravity = false;
+  this.physics.add.overlap(batter, ball, checkHit, null, this);
 
-  // Create visible green line for out of bounds detection
-  const greenLine = this.add.rectangle(400, fenceTopY, 800, 10, 0x00ff00).setOrigin(0.5, 0.5);
-  this.physics.add.existing(greenLine);
-  greenLine.body.immovable = true;
-  greenLine.body.allowGravity = false;
+  // Create the green line at the top of the fence
+  const greenLine = this.add.line(0, 0, 0, 200, 800, 200, 0x00ff00).setOrigin(0, 0);
+  this.physics.add.existing(greenLine, true);
 
-  this.physics.add.collider(ball, greenLine, handleBallHitZone, null, this);
-  this.physics.add.collider(ball, redLine, handleBallHitZone, null, this);
+  // Create the red line at the height of the pitcher's head
+  const redLineY = pitcher.y - 57; // Adjust as needed
+  const redLine = this.add.line(0, 0, 0, redLineY, 800, redLineY, 0xff0000).setOrigin(0, 0);
+  this.physics.add.existing(redLine, true);
+
+  this.physics.add.collider(ball, redLine, ballOut, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
-  // Start Button
   startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
     .setOrigin(0.5)
     .setInteractive()
     .on('pointerdown', startGame, this);
 
-  // Add event listener for mouse click
   this.input.on('pointerdown', () => {
     if (gameState === 'pitching') {
       gameState = 'swinging';
@@ -97,24 +89,19 @@ function create() {
 }
 
 function update() {
-  console.log('Game State:', gameState);
-  console.log('Pitch In Progress:', pitchInProgress);
-  console.log('Ball Position:', ball.x, ball.y);
-
   if (batter.anims.isPlaying && batter.anims.getProgress() === 1) {
     batter.setFrame(0);
     gameState = 'waitingForPitch';
-    checkHit(); 
+    checkHit();
   }
 
-  if (pitchInProgress && ball.y > 550) { 
-    ballOut(); 
+  if (pitchInProgress && ball.y > 550) {
+    ballOut();
   }
 }
 
 function startGame() {
-  startButton.setVisible(false); 
-  ball.setPosition(pitcher.x, pitcher.y); // Ensure ball starts in the pitcher's position
+  startButton.setVisible(false);
   this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
 }
 
@@ -132,12 +119,12 @@ function startPitch() {
 
 function pitchBall() {
   ball.setActive(true).setVisible(true);
-  ball.setPosition(pitcher.x, pitcher.y); 
+  ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
 
-  const pitchSpeed = Phaser.Math.GetSpeed(500, 1);
-  const pitchAngle = Phaser.Math.Between(-15, 5); 
-  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity); 
+  const pitchSpeed = Phaser.Math.Between(200, 300);
+  const pitchAngle = Phaser.Math.Between(-5, 5);
+  this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity);
 
   pitchInProgress = true;
 }
@@ -150,27 +137,18 @@ function checkHit() {
 }
 
 function hitBall() {
-  ball.setVelocity(Phaser.Math.Between(-200, 200), -500);
+  score += 1;
+  scoreText.setText(`Home Runs: ${score}`);
+  ball.setActive(false).setVisible(false);
 
-  // Check if the ball went over the red line for home run logic
-  if (ball.y < redLineY && ball.y > fenceTopY) {
-    score += 1;
-    scoreText.setText(`Home Runs: ${score}`);
+  // Check if the ball went over the fence
+  if (ball.y < redLine.y) {
+    console.log("Home Run!");
   } else {
-    ballOut();
+    console.log("Not a home run");
   }
-}
 
-function handleBallHitZone(ball, line) {
-  if (line.fillColor === 0xff0000 && ball.y < redLineY && ball.y > fenceTopY) {
-    // Ball hit the red line
-    hitBall();
-  } else if (line.fillColor === 0x00ff00 && ball.y < fenceTopY) {
-    // Ball hit the green line
-    hitBall();
-  } else if (ball.y > redLineY) {
-    ballOut();
-  }
+  this.time.delayedCall(500, resetPitch, [], this);
 }
 
 function ballOut() {
@@ -182,14 +160,14 @@ function ballOut() {
     this.add.text(400, 262, 'Game Over', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5, 0.5);
     this.time.delayedCall(2000, resetGame, [], this);
   } else {
-    this.time.delayedCall(500, resetPitch, [], this); 
+    this.time.delayedCall(500, resetPitch, [], this);
   }
   pitchInProgress = false;
 }
 
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
-  ball.setVelocity(0); 
+  ball.setVelocity(0);
   pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
@@ -199,5 +177,5 @@ function resetGame() {
   outs = 0;
   scoreText.setText('Home Runs: 0');
   outsText.setText('Outs: 0');
-  startButton.setVisible(true); // Show the start button again after game over
+  startButton.setVisible(true);
 }
