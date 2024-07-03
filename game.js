@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 },
+      gravity: { y: 300 },
       debug: false
     }
   },
@@ -20,15 +20,14 @@ const config = {
 const game = new Phaser.Game(config);
 
 let batter, pitcher, ball, scoreText, outsText, startButton;
-let gameState = 'waitingForPitch'; 
+let gameState = 'waitingForPitch';
 let score = 0;
 let outs = 0;
 let hitRegistered = false;
-let outRegistered = false;
 let pitchInProgress = false;
 
 // Fence coordinates
-const redLineY = 300; // Position of the red line from the top
+const redLineY = 150; // Move the red line up by 150 pixels from the previous position
 const fenceTopY = 100; // Green line position at the top for rare home runs
 
 function preload() {
@@ -62,9 +61,8 @@ function create() {
   batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
   pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
-  ball.body.allowGravity = true;
+  ball.body.allowGravity = false;
 
-  // Set immovable property for batter and pitcher to prevent them from falling
   batter.body.immovable = true;
   pitcher.body.immovable = true;
 
@@ -119,6 +117,7 @@ function update() {
 
 function startGame() {
   startButton.setVisible(false); 
+  ball.setPosition(pitcher.x, pitcher.y); // Ensure ball starts in the pitcher's position
   this.time.addEvent({ delay: 2000, callback: startPitch, callbackScope: this, loop: true });
 }
 
@@ -154,11 +153,10 @@ function checkHit() {
 }
 
 function hitBall() {
-  // Simulate ball flight
   ball.setVelocity(Phaser.Math.Between(-200, 200), -500);
 
   // Check if the ball went over the red line for home run logic
-  if (ball.y < redLineY) {
+  if (ball.y < redLineY && ball.y > fenceTopY) {
     score += 1;
     scoreText.setText(`Home Runs: ${score}`);
   } else {
@@ -167,12 +165,14 @@ function hitBall() {
 }
 
 function handleBallHitZone(ball, line) {
-  if (line.fillColor === 0xff0000 && ball.y < redLineY) {
+  if (line.fillColor === 0xff0000 && ball.y < redLineY && ball.y > fenceTopY) {
     // Ball hit the red line
     hitBall();
   } else if (line.fillColor === 0x00ff00 && ball.y < fenceTopY) {
     // Ball hit the green line
     hitBall();
+  } else if (ball.y > redLineY) {
+    ballOut();
   }
 }
 
