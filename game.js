@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 }, // Simulate gravity for ball trajectory
+      gravity: { y: 0 },
       debug: false
     }
   },
@@ -28,9 +28,8 @@ let outRegistered = false;
 let pitchInProgress = false;
 
 // Fence coordinates
-const fenceLeftX = 100; 
-const fenceRightX = 700;
-const fenceTopY = 200;  
+const redLineY = 300; // Position of the red line from the top
+const fenceTopY = 100; // Green line position at the top for rare home runs
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -63,24 +62,26 @@ function create() {
   batter = this.physics.add.sprite(350, 410, 'batter').setScale(2.3).setOrigin(0.5, 1);
   pitcher = this.physics.add.sprite(400, 317, 'pitcher').setScale(1.5).setOrigin(0.5, 1);
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
-  ball.body.allowGravity = false;
+  ball.body.allowGravity = true;
 
-  // Ensure ball starts at the pitcher
-  ball.setPosition(pitcher.x, pitcher.y);
+  // Set immovable property for batter and pitcher to prevent them from falling
+  batter.body.immovable = true;
+  pitcher.body.immovable = true;
 
-  // Create invisible fence
-  const fence = this.add.rectangle((fenceLeftX + fenceRightX) / 2, fenceTopY, fenceRightX - fenceLeftX, 10, 0xff0000).setOrigin(0.5, 1);
-  this.physics.add.existing(fence);
-  fence.body.immovable = true;
-  fence.body.allowGravity = false;
+  // Create visible red line (home run line)
+  const redLine = this.add.rectangle(400, redLineY, 800, 10, 0xff0000).setOrigin(0.5, 0.5);
+  this.physics.add.existing(redLine);
+  redLine.body.immovable = true;
+  redLine.body.allowGravity = false;
 
-  // Create invisible wall for out of bounds detection
-  const outOfBoundsZone = this.add.rectangle(0, 0, 800, 10, 0x00ff00).setOrigin(0); // Green for visibility (remove later)
-  this.physics.add.existing(outOfBoundsZone);
-  outOfBoundsZone.body.immovable = true;
-  outOfBoundsZone.body.allowGravity = false;
+  // Create visible green line for out of bounds detection
+  const greenLine = this.add.rectangle(400, fenceTopY, 800, 10, 0x00ff00).setOrigin(0.5, 0.5);
+  this.physics.add.existing(greenLine);
+  greenLine.body.immovable = true;
+  greenLine.body.allowGravity = false;
 
-  this.physics.add.collider(ball, outOfBoundsZone, ballOut, null, this);
+  this.physics.add.collider(ball, greenLine, handleBallHitZone, null, this);
+  this.physics.add.collider(ball, redLine, handleBallHitZone, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
@@ -153,19 +154,26 @@ function checkHit() {
 }
 
 function hitBall() {
-  score += 1;
-  scoreText.setText(`Home Runs: ${score}`);
-  ball.setActive(false).setVisible(false);
+  // Simulate ball flight
+  ball.setVelocity(Phaser.Math.Between(-200, 200), -500);
 
-  // Check if the ball went over the fence
-  if (ball.x > fenceLeftX && ball.x < fenceRightX && ball.y < fenceTopY) {
-    console.log("Home Run!");
-    // Add any additional home run effects here (e.g., animation, sound)
+  // Check if the ball went over the red line for home run logic
+  if (ball.y < redLineY) {
+    score += 1;
+    scoreText.setText(`Home Runs: ${score}`);
   } else {
-    console.log("Not a home run");
+    ballOut();
   }
+}
 
-  this.time.delayedCall(500, resetPitch, [], this);
+function handleBallHitZone(ball, line) {
+  if (line.fillColor === 0xff0000 && ball.y < redLineY) {
+    // Ball hit the red line
+    hitBall();
+  } else if (line.fillColor === 0x00ff00 && ball.y < fenceTopY) {
+    // Ball hit the green line
+    hitBall();
+  }
 }
 
 function ballOut() {
@@ -185,6 +193,7 @@ function ballOut() {
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0); 
+  pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
 
