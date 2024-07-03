@@ -6,7 +6,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 300 },
+      gravity: { y: 0 },
       debug: false
     }
   },
@@ -25,6 +25,7 @@ let score = 0;
 let outs = 0;
 let hitRegistered = false;
 let pitchInProgress = false;
+let ballInFlight = false;
 
 function preload() {
   this.load.image('field', 'field.png');
@@ -59,22 +60,19 @@ function create() {
   ball = this.physics.add.sprite(pitcher.x, pitcher.y, 'ball').setScale(1.5).setOrigin(0.5, 0.5);
   ball.body.allowGravity = false;
 
-  // Create custom hitbox for the bat
-  batter.body.setSize(30, 10, true); // Adjust the size of the hitbox
-  batter.body.setOffset(25, 20); // Adjust the offset to align with the bat
+  batter.body.setSize(30, 10, true);
+  batter.body.setOffset(25, 20);
 
-  this.physics.add.overlap(ball, batter, checkHit, null, this);
+  this.physics.add.collider(ball, batter, checkHit, null, this);
 
   scoreText = this.add.text(16, 16, 'Home Runs: 0', { fontSize: '24px', fill: '#fff' });
   outsText = this.add.text(16, 50, 'Outs: 0', { fontSize: '24px', fill: '#fff' });
 
-  // Start Button
   startButton = this.add.text(400, 300, 'Start Game', { fill: '#fff' })
     .setOrigin(0.5)
     .setInteractive()
     .on('pointerdown', startGame, this);
 
-  // Add event listener for mouse click
   this.input.on('pointerdown', () => {
     if (gameState === 'pitching') {
       gameState = 'swinging';
@@ -89,8 +87,8 @@ function update() {
     gameState = 'waitingForPitch';
   }
 
-  if (pitchInProgress && ball.y > 550) { 
-    ballOut(); 
+  if (pitchInProgress && ball.y > 550 && !ballInFlight) { 
+    ballOut();
   }
 }
 
@@ -105,7 +103,8 @@ function startPitch() {
   gameState = 'pitching';
   pitchInProgress = true;
   hitRegistered = false;
-  ball.setPosition(pitcher.x, pitcher.y); // Ensure ball starts at the pitcher's position
+  ballInFlight = false;
+  ball.setPosition(pitcher.x, pitcher.y);
   pitcher.anims.play('pitcher_throw');
   pitcher.once('animationcomplete', () => {
     pitchBall.call(this);
@@ -116,7 +115,7 @@ function pitchBall() {
   ball.setActive(true).setVisible(true);
   ball.setVelocity(0);
 
-  const pitchSpeed = Phaser.Math.GetSpeed(500, 1); // Adjusted speed (pixels per second)
+  const pitchSpeed = 300; // Adjusted speed (pixels per second)
   const pitchAngle = Phaser.Math.Between(-5, 5); // Slight angle variation
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + pitchAngle), pitchSpeed, ball.body.velocity); 
 
@@ -134,8 +133,8 @@ function hitBall() {
   score += 1;
   scoreText.setText(`Home Runs: ${score}`);
   ball.setActive(false).setVisible(false);
+  ballInFlight = true;
 
-  // Simulate ball going into the field
   simulateBallFlight.call(this);
   this.time.delayedCall(500, resetPitch, [], this);
 }
@@ -145,7 +144,7 @@ function simulateBallFlight() {
   const ballFlightAngle = Phaser.Math.Between(-10, 10); // Adjust angle for a more realistic trajectory
   ball.setPosition(batter.x, batter.y - 50);
   ball.setActive(true).setVisible(true);
-  ball.body.allowGravity = true; // Enable gravity for the ball flight
+  ball.body.allowGravity = true;
   this.physics.velocityFromRotation(Phaser.Math.DegToRad(90 + ballFlightAngle), ballFlightSpeed, ball.body.velocity);
 }
 
@@ -166,7 +165,7 @@ function ballOut() {
 function resetPitch() {
   ball.setPosition(pitcher.x, pitcher.y);
   ball.setVelocity(0);
-  ball.body.allowGravity = false; // Disable gravity for the next pitch
+  ball.body.allowGravity = false;
   pitchInProgress = false;
   gameState = 'waitingForPitch';
 }
@@ -176,5 +175,5 @@ function resetGame() {
   outs = 0;
   scoreText.setText('Home Runs: 0');
   outsText.setText('Outs: 0');
-  startButton.setVisible(true); // Show the start button again after game over
+  startButton.setVisible(true);
 }
